@@ -1,9 +1,12 @@
+# Keep out data for now
+data/
+
 # History files
 .Rhistory
 .Rapp.history
 
 # Session Data files
-.RData
+**.DS_Store
 .RDataTmp
 
 # User-specific files
