@@ -103,11 +103,14 @@ time_series_lice <- function(fish_data, sampling_locs) {
 
     # plot a timeseries coloured by the region
     ggplot(data = fish_data_region) +
+        geom_line(aes(x = date_ym, y = mean_leps, colour = region),
+            size = 1, linetype = "dashed", alpha = 0.8
+        ) +
         geom_point(aes(x = date_ym, y = mean_leps, fill = region),
             shape = 21, size = 2
         ) +
-        geom_line(aes(x = date_ym, y = mean_leps, colour = region),
-            size = 1
-        ) +
         theme_base()
+
+    # idea -- do soemthing where i show the timeseries of each type of the
+    # stages of lice over time
 }
