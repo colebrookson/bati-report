@@ -35,6 +35,7 @@ standardize_names <- function(df) {
     # loop through, pull the name out, change " " to "_"
     for (name in seq_len(length(current_names))) {
         current_names[name] <- gsub("\\ ", "_", current_names[name])
+        current_names[name] <- gsub("\\.", "_", current_names[name])
     }
 
     # check for any upper case letters and make those lower_case

@@ -3,7 +3,9 @@
 
 # make standard map ============================================================
 
-plot_study_area <- function(geo_data, site_data, to_save = TRUE) {
+plot_study_area <- function(
+    geo_data, farm_locs, sampling_locs,
+    to_save = TRUE) {
     # turn shapefile into something workable
     geo_data_sf_bc <- sf::st_as_sf(geo_data)
 
@@ -64,4 +66,48 @@ plot_study_area <- function(geo_data, site_data, to_save = TRUE) {
             basic_map
         )
     }
+
+    return(basic_map)
+}
+
+time_series_lice <- function(fish_data, sampling_locs) {
+    # do a join to put the regions on the fish dataframe
+    fish_data_region <- dplyr::left_join(
+        x = fish_data,
+        y = sampling_locs[, c("site_name", "region")],
+        by = "site_name"
+    ) %>%
+        dplyr::rowwise() %>%
+        dplyr::mutate(
+            date = lubridate::ymd(
+                paste(year, month, day, sep = "-")
+            )
+        ) %>%
+        # make a column of all lice
+        dplyr::mutate(
+            all_leps = sum(
+                lep_cope, lep_pa_male, lep_pa_female,
+                lep_male, lep_nongravid, lep_gravid
+            )
+        ) %>%
+        dplyr::select(year, month, date, all_leps, region) %>%
+        dplyr::group_by(year, month, region) %>%
+        dplyr::summarize(
+            mean_leps = mean(all_leps, na.rm = TRUE)
+        ) %>%
+        dplyr::mutate(
+            date_ym = lubridate::ym(
+                paste(year, month, sep = "-")
+            )
+        )
+
+    # plot a timeseries coloured by the region
+    ggplot(data = fish_data_region) +
+        geom_point(aes(x = date_ym, y = mean_leps, fill = region),
+            shape = 21, size = 2
+        ) +
+        geom_line(aes(x = date_ym, y = mean_leps, colour = region),
+            size = 1
+        ) +
+        theme_base()
 }
