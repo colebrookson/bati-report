@@ -71,8 +71,8 @@ plot_study_area <- function(
 }
 
 time_series_lice <- function(fish_data, sampling_locs) {
-
-    fish_summarized <- fish_data %>%
+    # plot a timeseries coloured by the region
+    ggplot(data = fish_data %>%
         dplyr::select(year, month, date, all_leps, region) %>%
         dplyr::group_by(year, month, region) %>%
         dplyr::summarize(
@@ -82,10 +82,7 @@ time_series_lice <- function(fish_data, sampling_locs) {
             date_ym = lubridate::ym(
                 paste(year, month, sep = "-")
             )
-        )
-
-    # plot a timeseries coloured by the region
-    ggplot(data = fish_summarized) +
+        )) +
         geom_line(aes(x = date_ym, y = mean_leps, colour = region),
             linewidth = 1, linetype = "dashed", alpha = 0.8
         ) +
@@ -94,13 +91,28 @@ time_series_lice <- function(fish_data, sampling_locs) {
         ) +
         theme_base()
 
-    # show a timeseries of each type of the lice stages over time 
-    lice_by_stage <- fish_data_region %>% 
-    dplyr::rowwise() %>% 
-    dplyr::mutate(
-        
-    )
+    # plot by region but use just yearly mean not monthly as well
+    ggplot(data = fish_data %>%
+        dplyr::select(year, month, date, all_leps, region) %>%
+        dplyr::group_by(year, region) %>%
+        dplyr::summarize(
+            mean_leps = mean(all_leps, na.rm = TRUE)
+        )) +
+        geom_line(aes(x = year, y = mean_leps, colour = region),
+            linewidth = 1, linetype = "dashed", alpha = 0.8
+        ) +
+        geom_point(aes(x = year, y = mean_leps, fill = region),
+            shape = 21, size = 2
+        ) +
+        theme_base() +
+        labs(x = "Year", y = "Mean Leps per year")
 
-    ggplot(data = 
+    # show a timeseries of each type of the lice stages over time
+    # lice_by_stage <- fish_data_region %>%
+    # dplyr::rowwise() %>%
+    # dplyr::mutate(
 
+    # )
+
+    #
 }
