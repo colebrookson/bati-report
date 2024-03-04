@@ -71,9 +71,9 @@ std_err <- function(x) {
 #'
 #' @param fish_data the raw lice data pre- any messing
 #' @param sampling_locs the raw sampling location data
-lice_data_clean <- function(fish_data  s, sampling_locs) {
+lice_data_clean <- function(fish_data, sampling_locs) {
     # do a join to put the regions on the fish dataframe
-    fish_data_region <- dplyr::left_join(
+    fish_data <- dplyr::left_join(
         x = fish_data,
         y = sampling_locs[, c("site_name", "region")],
         by = "site_name"
@@ -94,12 +94,34 @@ lice_data_clean <- function(fish_data  s, sampling_locs) {
             ),
             all_cals = sum(cal_cope, cal_mot, cal_gravid),
             all_lice = sum(
-                "lep_cope", "cal_cope", "chal_a", "chal_b", "lep_pa_male",
-                "lep_pa_female", "lep_male", "lep_nongravid", "lep_gravid",
-                "cal_mot", "cal_gravid", "unid_cope", "unid_chal", "unid_pa",
-                "unid_adult"
+                lep_cope, cal_cope, chal_a, chal_b, lep_pa_male,
+                lep_pa_female, lep_male, lep_nongravid, lep_gravid,
+                cal_mot, cal_gravid, unid_cope, unid_chal, unid_pa,
+                unid_adult
             )
         )
+
+    # do the chalimus imputation so they're speciated
+    props <- fish_data %>%
+        dplyr::select(year, all_leps, all_cals) %>%
+        dplyr::rowwise() %>%
+        dplyr::mutate(prop_leps = all_leps / (all_leps + all_cals)) %>%
+        dplyr::group_by(year) %>%
+        dplyr::summarize(
+            mean_prop_lep = mean(prop_leps, na.rm = TRUE)
+        )
+
+    # left join with this information
+    fish_data <- dplyr::left_join(
+        x = fish_data,
+        y = props,
+        by = "year"
+    )
+    # add in the leps and cals that are chalimus
+    fish_data$lep_chals <- NA
+    fish_data$cal_chals <- NA
+
+
     return(fish_data)
 }
 
