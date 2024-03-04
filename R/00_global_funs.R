@@ -121,6 +121,28 @@ lice_data_clean <- function(fish_data, sampling_locs) {
     fish_data$lep_chals <- NA
     fish_data$cal_chals <- NA
 
+    # for each chalimus lice there is, draw from a bernouli distribution
+    # which of the species it's going to be
+    for (row in seq_len(nrow(fish_data))) {
+        num <- sum(fish_data[row, c("chal_a", "chal_b")], na.rm = TRUE)
+        for (i in seq_len(num)) {
+            leps <- 0
+            cals <- 0
+            val <- sample(c(1, 0), size = 1, prob = c(
+                fish_data$mean_prop_lep[row],
+                (1 - fish_data$mean_prop_lep[row])
+            ))
+            if (val == 1) {
+                leps <- leps + 1
+            } else {
+                cals <- cals + 1
+            }
+            fish_data$cal_chals[row] <- cals
+            fish_data$lep_chals[row] <- leps
+        }
+    }
+
+
 
     return(fish_data)
 }
