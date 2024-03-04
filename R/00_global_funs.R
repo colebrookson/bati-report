@@ -142,7 +142,13 @@ lice_data_clean <- function(fish_data, sampling_locs) {
         }
     }
 
-
+    # now add the newly speciated values to the speciated values
+    fish_data <- fish_data %>%
+        dplyr::rowwise() %>%
+        dplyr::mutate(
+            all_leps = all_leps + lep_chals,
+            all_cals = all_cals + cal_chals
+        )
 
     return(fish_data)
 }

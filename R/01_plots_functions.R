@@ -72,7 +72,7 @@ plot_study_area <- function(
 
 time_series_lice <- function(fish_data, sampling_locs) {
 
-    fish_summarized <- fish_data_region %>%
+    fish_summarized <- fish_data %>%
         dplyr::select(year, month, date, all_leps, region) %>%
         dplyr::group_by(year, month, region) %>%
         dplyr::summarize(
@@ -98,7 +98,7 @@ time_series_lice <- function(fish_data, sampling_locs) {
     lice_by_stage <- fish_data_region %>% 
     dplyr::rowwise() %>% 
     dplyr::mutate(
-
+        
     )
 
     ggplot(data = 
