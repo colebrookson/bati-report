@@ -64,6 +64,45 @@ std_err <- function(x) {
     return(sd(x, na.rm = TRUE) / sqrt(length(x)))
 }
 
+#' Gets the standard required lice information
+#'
+#' @description Take in the raw data and do the standard stuff that we'll need
+#' for further processing - get all the lice counts of interest
+#'
+#' @param fish_data the raw lice data pre- any messing
+#' @param sampling_locs the raw sampling location data
+lice_data_clean <- function(fish_data  s, sampling_locs) {
+    # do a join to put the regions on the fish dataframe
+    fish_data_region <- dplyr::left_join(
+        x = fish_data,
+        y = sampling_locs[, c("site_name", "region")],
+        by = "site_name"
+    ) %>%
+        dplyr::filter(liced == 1) %>% # keep only liced fish
+        dplyr::rowwise() %>%
+        dplyr::mutate(
+            date = lubridate::ymd(
+                paste(year, month, day, sep = "-")
+            )
+        ) %>%
+        # make a column of all lice
+        dplyr::mutate(
+            all_leps = sum(
+                lep_cope, lep_pa_male, lep_pa_female,
+                lep_male, lep_nongravid, lep_gravid,
+                na.rm = TRUE
+            ),
+            all_cals = sum(cal_cope, cal_mot, cal_gravid),
+            all_lice = sum(
+                "lep_cope", "cal_cope", "chal_a", "chal_b", "lep_pa_male",
+                "lep_pa_female", "lep_male", "lep_nongravid", "lep_gravid",
+                "cal_mot", "cal_gravid", "unid_cope", "unid_chal", "unid_pa",
+                "unid_adult"
+            )
+        )
+    return(fish_data)
+}
+
 #' Foundation Theme
 #'
 #' This theme is designed to be a foundation from which to build new

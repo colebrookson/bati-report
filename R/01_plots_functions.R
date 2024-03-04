@@ -71,25 +71,8 @@ plot_study_area <- function(
 }
 
 time_series_lice <- function(fish_data, sampling_locs) {
-    # do a join to put the regions on the fish dataframe
-    fish_data_region <- dplyr::left_join(
-        x = fish_data,
-        y = sampling_locs[, c("site_name", "region")],
-        by = "site_name"
-    ) %>%
-        dplyr::rowwise() %>%
-        dplyr::mutate(
-            date = lubridate::ymd(
-                paste(year, month, day, sep = "-")
-            )
-        ) %>%
-        # make a column of all lice
-        dplyr::mutate(
-            all_leps = sum(
-                lep_cope, lep_pa_male, lep_pa_female,
-                lep_male, lep_nongravid, lep_gravid
-            )
-        ) %>%
+
+    fish_summarized <- fish_data_region %>%
         dplyr::select(year, month, date, all_leps, region) %>%
         dplyr::group_by(year, month, region) %>%
         dplyr::summarize(
@@ -102,15 +85,22 @@ time_series_lice <- function(fish_data, sampling_locs) {
         )
 
     # plot a timeseries coloured by the region
-    ggplot(data = fish_data_region) +
+    ggplot(data = fish_summarized) +
         geom_line(aes(x = date_ym, y = mean_leps, colour = region),
-            size = 1, linetype = "dashed", alpha = 0.8
+            linewidth = 1, linetype = "dashed", alpha = 0.8
         ) +
         geom_point(aes(x = date_ym, y = mean_leps, fill = region),
             shape = 21, size = 2
         ) +
         theme_base()
 
-    # idea -- do soemthing where i show the timeseries of each type of the
-    # stages of lice over time
+    # show a timeseries of each type of the lice stages over time 
+    lice_by_stage <- fish_data_region %>% 
+    dplyr::rowwise() %>% 
+    dplyr::mutate(
+
+    )
+
+    ggplot(data = 
+
 }
