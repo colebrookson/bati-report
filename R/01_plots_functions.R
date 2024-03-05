@@ -196,6 +196,50 @@ time_series_lice <- function(fish_data, sampling_locs, inventory) {
         all_cals_region_yr
     )
 
+    # plot by region but use just yearly mean not monthly as well
+    simple_year_regression <- ggplot(data = fish_data %>%
+        dplyr::select(year, month, date, all_cals, all_leps, all_lice) %>%
+        dplyr::group_by(year, month) %>%
+        dplyr::mutate(
+            month = as.factor(month)
+        ) %>%
+        dplyr::summarize(
+            cals = mean(all_cals, na.rm = TRUE),
+            leps = mean(all_leps, na.rm = TRUE),
+            all = mean(all_lice, na.rm = TRUE)
+        ) %>%
+        tidyr::pivot_longer(
+            cols = c(cals, leps, all),
+            values_to = "lice",
+            names_to = "type"
+        ) %>%
+        dplyr::ungroup() %>%
+        dplyr::mutate(
+            date_ym = lubridate::ym(
+                paste(year, month, sep = "-")
+            )
+        )) +
+        geom_smooth(
+            aes(x = date_ym, y = lice, group = type, colour = type, fill = type),
+            method = "lm",
+            formula = y ~ x,
+            alpha = 0.2
+        ) +
+        geom_point(
+            aes(
+                x = date_ym, y = lice, group = year, fill = type,
+                shape = month
+            ),
+            size = 2
+        ) +
+        scale_shape_manual(values = c(21:24)) +
+        theme_base() +
+        labs(x = "Year", y = "Mean lice per fish")
+    ggplot2::ggsave(
+        here::here("./figs/lice-by-year-regression.png"),
+        simple_year_regression
+    )
+
     # farm inventory / lice ====================================================
     mean_farm <- inventory %>%
         dplyr::group_by(date, ) %>%
