@@ -32,16 +32,31 @@ sampling_locs <- readr::read_csv(
 head_dists <- readr::read_csv(
     here::here("./data/headwater-distances.csv")
 )
+inventory <- readr::read_csv(
+    here::here("./data/old-farm-data.csv")
+) %>% dplyr::mutate(
+    date = lubridate::ym(
+        paste(year, month, sep = "-")
+    )
+)
 
 # some data cleaning ===========================================================
 fish_data <- lice_data_clean(fish_data, sampling_locs)
-
-
-
-
 
 # put some initial plots =======================================================
 basic_plot <- plot_study_area(
     geo_data, farm_locs, sampling_locs,
     to_save = TRUE
+)
+
+lice_related_timseries <- time_series_lice(
+    fish_data, sampling_locs, inventory
+)
+
+map_based_data <- maps_with_data(
+    inventory, fish_data, sampling_locs, farm_locs, geo_data
+)
+
+headwater_plots <- headwater_distances(
+    head_dists, fish_data
 )

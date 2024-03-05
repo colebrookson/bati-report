@@ -72,6 +72,9 @@ std_err <- function(x) {
 #' @param fish_data the raw lice data pre- any messing
 #' @param sampling_locs the raw sampling location data
 lice_data_clean <- function(fish_data, sampling_locs) {
+    # first, make sure all the site_codes are right
+    fish_data$site_code[which(fish_data$site_code == "KoK")] <- "KOK"
+
     # do a join to put the regions on the fish dataframe
     fish_data <- dplyr::left_join(
         x = fish_data,
