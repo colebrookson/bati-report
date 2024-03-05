@@ -29,9 +29,16 @@ farm_locs <- readr::read_csv(
 sampling_locs <- readr::read_csv(
     here::here("./data/geo-spatial/bati_site_master_list.csv")
 )
+head_dists <- readr::read_csv(
+    here::here("./data/headwater-distances.csv")
+)
 
 # some data cleaning ===========================================================
 fish_data <- lice_data_clean(fish_data, sampling_locs)
+
+
+
+
 
 # put some initial plots =======================================================
 basic_plot <- plot_study_area(

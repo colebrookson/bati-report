@@ -124,7 +124,9 @@ lice_data_clean <- function(fish_data, sampling_locs) {
     # for each chalimus lice there is, draw from a bernouli distribution
     # which of the species it's going to be
     for (row in seq_len(nrow(fish_data))) {
-        num <- sum(fish_data[row, c("chal_a", "chal_b")], na.rm = TRUE)
+        num <- sum(fish_data[row, c("chal_a", "chal_b", "unid_chal")],
+            na.rm = TRUE
+        )
         for (i in seq_len(num)) {
             leps <- 0
             cals <- 0
@@ -147,7 +149,28 @@ lice_data_clean <- function(fish_data, sampling_locs) {
         dplyr::rowwise() %>%
         dplyr::mutate(
             all_leps = all_leps + lep_chals,
-            all_cals = all_cals + cal_chals
+            all_cals = all_cals + cal_chals,
+            all_chal_cope = sum(
+                lep_cope, cal_cope, chal_a, chal_b, unid_cope,
+                unid_chal
+            ),
+            adult_leps = sum(
+                lep_pa_male,
+                lep_pa_female, lep_male, lep_nongravid, lep_gravid,
+                na.rm = TRUE
+            ),
+            adult_cals = sum(
+                cal_mot, cal_gravid,
+                na.rm = TRUE
+            ),
+            all_adults = sum(
+                lep_pa_male, cal_mot, cal_gravid,
+                lep_pa_female, lep_male, lep_nongravid, lep_gravid,
+                na.rm = TRUE
+            ),
+            juv_leps = sum(
+                lep_cope, lep_chals
+            )
         )
 
     return(fish_data)
