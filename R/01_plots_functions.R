@@ -403,7 +403,118 @@ headwater_distances <- function(head_dists, fish_data) {
         )
     ggplot2::ggsave(
         here::here("./figs/knight-2-corridor-headwater-distance-all-juvs.png"),
-        knight_1_juvs
+        knight_2_juvs
+    )
+    knight_2_adult_leps <- ggplot() +
+        geom_point(
+            data = head_dists_lice,
+            aes(x = (knight_head_2 / 1000), y = mean_lep_adults)
+        ) +
+        geom_errorbar(
+            data = head_dists_lice,
+            aes(
+                x = (knight_head_2 / 1000),
+                ymin = (mean_lep_adults - se_lep_adults),
+                ymax = (mean_lep_adults + se_lep_adults)
+            )
+        ) +
+        geom_col(data = just_farms, aes(
+            x = (knight_head_2 / 1000),
+            y = max(head_dists_lice$mean_lep_adults, na.rm = TRUE) * 1.25
+        ), fill = "lightblue") +
+        theme_base() +
+        labs(
+            x = "Distance from Knight Headwaters (km)",
+            y = "Mean number of lice per fish at each sampling location",
+            title = "Adult Leps"
+        )
+    ggplot2::ggsave(
+        here::here("./figs/knight-2-corridor-headwater-distance-adult-leps.png"),
+        knight_2_adult_leps
+    )
+
+    knight_2_juv_leps <- ggplot() +
+        geom_point(
+            data = head_dists_lice,
+            aes(x = (knight_head_2 / 1000), y = mean_lep_juvs)
+        ) +
+        geom_errorbar(
+            data = head_dists_lice,
+            aes(
+                x = (knight_head_2 / 1000),
+                ymin = (mean_lep_juvs - se_lep_juvs),
+                ymax = (mean_lep_juvs + se_lep_juvs)
+            )
+        ) +
+        geom_col(data = just_farms, aes(
+            x = (knight_head_2 / 1000),
+            y = max(head_dists_lice$mean_lep_juvs, na.rm = TRUE) * 1.25
+        ), fill = "lightblue") +
+        theme_base() +
+        labs(
+            x = "Distance from Knight Headwaters (km)",
+            y = "Mean number of lice per fish at each sampling location",
+            title = "Juvenile leps"
+        )
+    ggplot2::ggsave(
+        here::here("./figs/knight-2-corridor-headwater-distance-juv-leps.png"),
+        knight_2_juv_leps
+    )
+
+    # Wakeman ==================================================================
+
+    wakeman_all <- ggplot() +
+        geom_point(
+            data = head_dists_lice,
+            aes(x = (wakeman_head / 1000), y = mean_all)
+        ) +
+        geom_errorbar(
+            data = head_dists_lice,
+            aes(
+                x = (knight_head_2 / 1000), ymin = (mean_all - se_all),
+                ymax = (mean_all + se_all)
+            )
+        ) +
+        geom_col(data = just_farms, aes(
+            x = (knight_head_2 / 1000),
+            y = max(head_dists_lice$mean_all, na.rm = TRUE) * 1.25
+        ), fill = "lightblue") +
+        theme_base() +
+        labs(
+            x = "Distance from Knight Headwaters (km)",
+            y = "Mean number of lice per fish at each sampling location",
+            title = "All Species / Stages"
+        )
+    ggplot2::ggsave(
+        here::here("./figs/knight-2-corridor-headwater-distance-all-lice.png"),
+        knight_2_all
+    )
+    knight_2_juvs <- ggplot() +
+        geom_point(
+            data = head_dists_lice,
+            aes(x = (knight_head_2 / 1000), y = mean_chal_cope)
+        ) +
+        geom_errorbar(
+            data = head_dists_lice,
+            aes(
+                x = (knight_head_2 / 1000),
+                ymin = (mean_chal_cope - se_chal_cope),
+                ymax = (mean_chal_cope + se_chal_cope)
+            )
+        ) +
+        geom_col(data = just_farms, aes(
+            x = (knight_head_2 / 1000),
+            y = max(head_dists_lice$mean_chal_cope, na.rm = TRUE) * 1.25
+        ), fill = "lightblue") +
+        theme_base() +
+        labs(
+            x = "Distance from Knight Headwaters (km)",
+            y = "Mean number of lice per fish at each sampling location",
+            title = "Chalimus / Cope -- All Species"
+        )
+    ggplot2::ggsave(
+        here::here("./figs/knight-2-corridor-headwater-distance-all-juvs.png"),
+        knight_2_juvs
     )
     knight_2_adult_leps <- ggplot() +
         geom_point(
