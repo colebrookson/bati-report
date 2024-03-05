@@ -108,7 +108,7 @@ plot_study_area <- function(
 
 time_series_lice <- function(fish_data, sampling_locs) {
     # plot a timeseries coloured by the region
-    ggplot(data = fish_data %>%
+    regions_all_leps <- ggplot(data = fish_data %>%
         dplyr::select(year, month, date, all_leps, region) %>%
         dplyr::group_by(year, month, region) %>%
         dplyr::summarize(
@@ -126,10 +126,14 @@ time_series_lice <- function(fish_data, sampling_locs) {
             shape = 21, size = 2
         ) +
         theme_base() +
-        labs(x = "Year", y = "Mean Leps per year/month")
+        labs(x = "Year", y = "Mean lice per year/month", title = "All Leps")
+    ggplot2::ggsave(
+        here::here("./figs/all-leps-on-wild-fish-by-region-month-&-year.png"),
+        regions_all_leps
+    )
 
     # plot by region but use just yearly mean not monthly as well
-    ggplot(data = fish_data %>%
+    regions_all_leps_yr <- ggplot(data = fish_data %>%
         dplyr::select(year, month, date, all_leps, region) %>%
         dplyr::group_by(year, region) %>%
         dplyr::summarize(
@@ -142,10 +146,14 @@ time_series_lice <- function(fish_data, sampling_locs) {
             shape = 21, size = 2
         ) +
         theme_base() +
-        labs(x = "Year", y = "Mean Leps per year")
+        labs(x = "Year", y = "Mean lice per year", title = "All Leps")
+    ggplot2::ggsave(
+        here::here("./figs/all-leps-on-wild-fish-by-region-year.png"),
+        regions_all_leps_yr
+    )
 
     # caligus through time
-    ggplot(data = fish_data %>%
+    all_cals_region <- ggplot(data = fish_data %>%
         dplyr::select(year, month, date, all_cals, region) %>%
         dplyr::group_by(year, month, region) %>%
         dplyr::summarize(
@@ -163,10 +171,14 @@ time_series_lice <- function(fish_data, sampling_locs) {
             shape = 21, size = 2
         ) +
         theme_base() +
-        labs(x = "Year", y = "Mean Caligus per year/month")
+        labs(x = "Year", y = "Mean lice per year/month", title = "All Cals")
+    ggplot2::ggsave(
+        here::here("./figs/all-cals-on-wild-fish-by-region-month-&-year.png"),
+        all_cals_region
+    )
 
     # plot by region but use just yearly mean not monthly as well
-    ggplot(data = fish_data %>%
+    all_cals_region_yr <- ggplot(data = fish_data %>%
         dplyr::select(year, month, date, all_cals, region) %>%
         dplyr::group_by(year, region) %>%
         dplyr::summarize(
@@ -179,7 +191,11 @@ time_series_lice <- function(fish_data, sampling_locs) {
             shape = 21, size = 2
         ) +
         theme_base() +
-        labs(x = "Year", y = "Mean Caligus per year")
+        labs(x = "Year", y = "Mean lice per year", title = "All Cals")
+    ggplot2::ggsave(
+        here::here("./figs/all-cals-on-wild-fish-by-region-year.png"),
+        all_cals_region_yr
+    )
 
     # show a timeseries of each type of the lice stages over time
     # lice_by_stage <- fish_data_region %>%
@@ -203,13 +219,15 @@ headwater_distances <- function(head_dists, fish_data) {
             mean_lep_adults = mean(adult_leps, na.rm = TRUE),
             mean_cal_adults = mean(adult_cals, na.rm = TRUE),
             mean_all_adults = mean(all_adults, na.rm = TRUE),
+            mean_lep_juvs = mean(juv_leps, na.rm = TRUE),
             se_leps = std_err(all_leps),
             se_cals = std_err(all_cals),
             se_all = std_err(all_lice),
             se_chal_cope = std_err(all_chal_cope),
             se_lep_adults = std_err(adult_leps),
             se_cal_adults = std_err(adult_cals),
-            se_all_adults = std_err(all_adults)
+            se_all_adults = std_err(all_adults),
+            se_lep_juvs = std_err(juv_leps)
         )
 
     head_dists_lice <- dplyr::left_join(
@@ -220,7 +238,10 @@ headwater_distances <- function(head_dists, fish_data) {
     just_farms <- head_dists[which(
         head_dists_lice$type == "farm"
     ), ]
-    ggplot() +
+
+    # Knight passage 1 =========================================================
+
+    knight_1_all <- ggplot() +
         geom_point(
             data = head_dists_lice,
             aes(x = (knight_head_1 / 1000), y = mean_all)
@@ -234,7 +255,7 @@ headwater_distances <- function(head_dists, fish_data) {
         ) +
         geom_col(data = just_farms, aes(
             x = (knight_head_1 / 1000),
-            y = 2.5
+            y = max(head_dists_lice$mean_all, na.rm = TRUE) * 1.25
         ), fill = "lightblue") +
         theme_base() +
         labs(
@@ -242,7 +263,11 @@ headwater_distances <- function(head_dists, fish_data) {
             y = "Mean number of lice per fish at each sampling location",
             title = "All Species / Stages"
         )
-    ggplot() +
+    ggplot2::ggsave(
+        here::here("./figs/knight-1-corridor-headwater-distance-all-lice.png"),
+        knight_1_all
+    )
+    knight_1_juvs <- ggplot() +
         geom_point(
             data = head_dists_lice,
             aes(x = (knight_head_1 / 1000), y = mean_chal_cope)
@@ -257,7 +282,7 @@ headwater_distances <- function(head_dists, fish_data) {
         ) +
         geom_col(data = just_farms, aes(
             x = (knight_head_1 / 1000),
-            y = 2.5
+            y = max(head_dists_lice$mean_chal_cope, na.rm = TRUE) * 1.25
         ), fill = "lightblue") +
         theme_base() +
         labs(
@@ -265,7 +290,11 @@ headwater_distances <- function(head_dists, fish_data) {
             y = "Mean number of lice per fish at each sampling location",
             title = "Chalimus / Cope -- All Species"
         )
-    ggplot() +
+    ggplot2::ggsave(
+        here::here("./figs/knight-1-corridor-headwater-distance-all-juvs.png"),
+        knight_1_juvs
+    )
+    knight_1_adult_leps <- ggplot() +
         geom_point(
             data = head_dists_lice,
             aes(x = (knight_head_1 / 1000), y = mean_lep_adults)
@@ -280,7 +309,91 @@ headwater_distances <- function(head_dists, fish_data) {
         ) +
         geom_col(data = just_farms, aes(
             x = (knight_head_1 / 1000),
-            y = 2.5
+            y = max(head_dists_lice$mean_lep_adults, na.rm = TRUE) * 1.25
+        ), fill = "lightblue") +
+        theme_base() +
+        labs(
+            x = "Distance from Knight Headwaters (km)",
+            y = "Mean number of lice per fish at each sampling location",
+            title = "Adult Leps"
+        )
+    ggplot2::ggsave(
+        here::here("./figs/knight-1-corridor-headwater-distance-adult-leps.png"),
+        knight_1_adult_leps
+    )
+
+    knight_1_juv_leps <- ggplot() +
+        geom_point(
+            data = head_dists_lice,
+            aes(x = (knight_head_1 / 1000), y = mean_lep_juvs)
+        ) +
+        geom_errorbar(
+            data = head_dists_lice,
+            aes(
+                x = (knight_head_1 / 1000),
+                ymin = (mean_lep_juvs - se_lep_juvs),
+                ymax = (mean_lep_juvs + se_lep_juvs)
+            )
+        ) +
+        geom_col(data = just_farms, aes(
+            x = (knight_head_1 / 1000),
+            y = max(head_dists_lice$mean_lep_juvs, na.rm = TRUE) * 1.25
+        ), fill = "lightblue") +
+        theme_base() +
+        labs(
+            x = "Distance from Knight Headwaters (km)",
+            y = "Mean number of lice per fish at each sampling location",
+            title = "Juvenile leps"
+        )
+    ggplot2::ggsave(
+        here::here("./figs/knight-1-corridor-headwater-distance-juv-leps.png"),
+        knight_1_juv_leps
+    )
+
+    # Knight passage 2 =========================================================
+
+    knight_2_all <- ggplot() +
+        geom_point(
+            data = head_dists_lice,
+            aes(x = (knight_head_2 / 1000), y = mean_all)
+        ) +
+        geom_errorbar(
+            data = head_dists_lice,
+            aes(
+                x = (knight_head_2 / 1000), ymin = (mean_all - se_all),
+                ymax = (mean_all + se_all)
+            )
+        ) +
+        geom_col(data = just_farms, aes(
+            x = (knight_head_2 / 1000),
+            y = max(head_dists_lice$mean_all, na.rm = TRUE) * 1.25
+        ), fill = "lightblue") +
+        theme_base() +
+        labs(
+            x = "Distance from Knight Headwaters (km)",
+            y = "Mean number of lice per fish at each sampling location",
+            title = "All Species / Stages"
+        )
+    ggplot2::ggsave(
+        here::here("./figs/knight-2-corridor-headwater-distance-all-lice.png"),
+        knight_2_all
+    )
+    knight_2_juvs <- ggplot() +
+        geom_point(
+            data = head_dists_lice,
+            aes(x = (knight_head_2 / 1000), y = mean_chal_cope)
+        ) +
+        geom_errorbar(
+            data = head_dists_lice,
+            aes(
+                x = (knight_head_2 / 1000),
+                ymin = (mean_chal_cope - se_chal_cope),
+                ymax = (mean_chal_cope + se_chal_cope)
+            )
+        ) +
+        geom_col(data = just_farms, aes(
+            x = (knight_head_2 / 1000),
+            y = max(head_dists_lice$mean_chal_cope, na.rm = TRUE) * 1.25
         ), fill = "lightblue") +
         theme_base() +
         labs(
@@ -288,4 +401,63 @@ headwater_distances <- function(head_dists, fish_data) {
             y = "Mean number of lice per fish at each sampling location",
             title = "Chalimus / Cope -- All Species"
         )
+    ggplot2::ggsave(
+        here::here("./figs/knight-2-corridor-headwater-distance-all-juvs.png"),
+        knight_1_juvs
+    )
+    knight_2_adult_leps <- ggplot() +
+        geom_point(
+            data = head_dists_lice,
+            aes(x = (knight_head_2 / 1000), y = mean_lep_adults)
+        ) +
+        geom_errorbar(
+            data = head_dists_lice,
+            aes(
+                x = (knight_head_2 / 1000),
+                ymin = (mean_lep_adults - se_lep_adults),
+                ymax = (mean_lep_adults + se_lep_adults)
+            )
+        ) +
+        geom_col(data = just_farms, aes(
+            x = (knight_head_2 / 1000),
+            y = max(head_dists_lice$mean_lep_adults, na.rm = TRUE) * 1.25
+        ), fill = "lightblue") +
+        theme_base() +
+        labs(
+            x = "Distance from Knight Headwaters (km)",
+            y = "Mean number of lice per fish at each sampling location",
+            title = "Adult Leps"
+        )
+    ggplot2::ggsave(
+        here::here("./figs/knight-2-corridor-headwater-distance-adult-leps.png"),
+        knight_2_adult_leps
+    )
+
+    knight_2_juv_leps <- ggplot() +
+        geom_point(
+            data = head_dists_lice,
+            aes(x = (knight_head_2 / 1000), y = mean_lep_juvs)
+        ) +
+        geom_errorbar(
+            data = head_dists_lice,
+            aes(
+                x = (knight_head_2 / 1000),
+                ymin = (mean_lep_juvs - se_lep_juvs),
+                ymax = (mean_lep_juvs + se_lep_juvs)
+            )
+        ) +
+        geom_col(data = just_farms, aes(
+            x = (knight_head_2 / 1000),
+            y = max(head_dists_lice$mean_lep_juvs, na.rm = TRUE) * 1.25
+        ), fill = "lightblue") +
+        theme_base() +
+        labs(
+            x = "Distance from Knight Headwaters (km)",
+            y = "Mean number of lice per fish at each sampling location",
+            title = "Juvenile leps"
+        )
+    ggplot2::ggsave(
+        here::here("./figs/knight-2-corridor-headwater-distance-juv-leps.png"),
+        knight_2_juv_leps
+    )
 }
