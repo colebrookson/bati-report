@@ -270,7 +270,7 @@ time_series_lice <- function(fish_data, sampling_locs, inventory) {
         theme_base() +
         labs(
             x = "Year", y = "Mean lice per year",
-            title = "All Leps (speciated)"
+            title = "All Leps"
         )
     ggplot2::ggsave(
         here::here("./figs/speciated-leps-on-wild-fish-by-year.png"),
