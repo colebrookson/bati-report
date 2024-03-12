@@ -240,9 +240,45 @@ time_series_lice <- function(fish_data, sampling_locs, inventory) {
         simple_year_regression
     )
 
+    # leps through time no region ==============================================
+    # plot by region but use just yearly mean not monthly as well
+    spp_leps_yr <- ggplot(data = fish_data %>%
+        # dplyr::select(year, month, date, all_leps, region) %>%
+        dplyr::rowwise() %>%
+        dplyr::mutate(
+            non_chal_leps = sum(
+                lep_cope, lep_pa_male, lep_pa_female,
+                lep_male, lep_nongravid, lep_gravid,
+                na.rm = TRUE
+            )
+        ) %>%
+        dplyr::group_by(year) %>%
+        dplyr::summarize(
+            mean_leps = mean(non_chal_leps, na.rm = TRUE),
+            se_leps = std_err(non_chal_leps)
+        )) +
+        geom_line(aes(x = year, y = mean_leps),
+            linewidth = 1, linetype = "dashed", alpha = 0.2
+        ) +
+        geom_errorbar(aes(
+            x = year, ymin = (mean_leps - se_leps),
+            ymax = (mean_leps + se_leps)
+        ), width = 0) +
+        geom_point(aes(x = year, y = mean_leps),
+            shape = 21, size = 2, fill = "blue"
+        ) +
+        theme_base() +
+        labs(
+            x = "Year", y = "Mean lice per year",
+            title = "All Leps (speciated)"
+        )
+    ggplot2::ggsave(
+        here::here("./figs/speciated-leps-on-wild-fish-by-year.png"),
+        spp_leps_yr
+    )
     # farm inventory / lice ====================================================
     mean_farm <- inventory %>%
-        dplyr::group_by(date, ) %>%
+        dplyr::group_by(date) %>%
         dplyr::summarize(
             inventory = mean(inventory, na.rm = TRUE),
             lice = mean(lep_tot, na.rm = TRUE)
@@ -268,9 +304,108 @@ time_series_lice <- function(fish_data, sampling_locs, inventory) {
         inventory_p
     )
 
+    # wild lice farm lice ======================================================
+    farm_groups <- inventory %>%
+        dplyr::mutate(
+            farm_type = ifelse(farm_name %in% c(
+                "Humphrey Rock", "Doctors Islets",
+                "Sargeaunt Pass"
+            ), "HDS", "Others")
+        ) %>%
+        dplyr::group_by(year, month, farm_type) %>%
+        dplyr::summarize(
+            leps = mean(lep_tot, na.rm = TRUE),
+            cals = mean(cal_tot, na.rm = TRUE)
+        )
+    farm_nongrouped <- inventory %>%
+        dplyr::group_by(year, month) %>%
+        dplyr::summarize(
+            leps = mean(lep_tot, na.rm = TRUE),
+            cals = mean(cal_tot, na.rm = TRUE)
+        ) %>%
+        dplyr::mutate(
+            farm_type = "all"
+        ) %>%
+        dplyr::select(year, month, farm_type, leps, cals)
+    farms_both <- rbind(farm_groups, farm_nongrouped) %>%
+        dplyr::mutate(
+            date_ym = lubridate::ym(paste(year, month, sep = "-"))
+        ) %>%
+        dplyr::rowwise() %>%
+        dplyr::mutate(all = sum(leps, cals, na.rm = TRUE)) %>%
+        tidyr::pivot_longer(
+            cols = c(cals, leps, all),
+            values_to = "lice_farm",
+            names_to = "type_farm"
+        )
+
+    fish_regression <- fish_data %>%
+        dplyr::select(year, month, date, all_cals, all_leps, all_lice) %>%
+        dplyr::group_by(year, month) %>%
+        dplyr::mutate(
+            month = as.factor(month)
+        ) %>%
+        dplyr::summarize(
+            cals = mean(all_cals, na.rm = TRUE),
+            leps = mean(all_leps, na.rm = TRUE),
+            all = mean(all_lice, na.rm = TRUE)
+        ) %>%
+        tidyr::pivot_longer(
+            cols = c(cals, leps, all),
+            values_to = "lice_wild",
+            names_to = "type_wild"
+        ) %>%
+        dplyr::ungroup() %>%
+        dplyr::mutate(
+            date_ym = lubridate::ym(
+                paste(year, month, sep = "-")
+            )
+        ) %>%
+        dplyr::select(-c(year, month))
+    farm_wild_join <- dplyr::left_join(
+        x = farms_both,
+        y = fish_regression,
+        by = "date_ym",
+        relationship = "many-to-many"
+    )
+
+    lep_lep <- farm_wild_join %>%
+        dplyr::filter(
+            type_farm == "leps", type_wild == "leps"
+        )
+    lep_v_lep <- ggplot(data = lep_lep[which(lep_lep$farm_type == "HDS"), ]) +
+        geom_point(aes(x = lice_farm, y = lice_wild)) +
+        geom_smooth(
+            aes(x = lice_farm, y = lice_wild),
+            method = "lm",
+            formula = y ~ x
+        ) +
+        theme_base()
+    ggsave(
+        here::here("./figs/wild-lep-vs-farm-lep-reg.png"),
+        lep_v_lep
+    )
+    loglep_v_loglep <- ggplot(
+        data =
+            lep_lep[which(lep_lep$farm_type == "HDS"), ]
+    ) +
+        geom_point(aes(x = log10(lice_farm), y = log10(lice_wild))) +
+        geom_smooth(
+            aes(x = log10(lice_farm), y = log10(lice_wild)),
+            method = "lm",
+            formula = y ~ x
+        ) +
+        theme_base()
+    ggsave(
+        here::here("./figs/wild-log-lep-vs-farm-log-lep-reg.png"),
+        loglep_v_loglep
+    )
+
+
     return(list(
         regions_all_leps, regions_all_leps_yr, all_cals_region,
-        all_cals_region_yr, inventory_p
+        all_cals_region_yr, simple_year_regression, inventory_p,
+        lep_v_lep, loglep_v_loglep
     ))
 }
 
@@ -446,7 +581,7 @@ maps_with_data <- function(
 headwater_distances <- function(head_dists, fish_data) {
     fish_data_headwater <- fish_data %>%
         dplyr::mutate(site_code = as.factor(site_code)) %>%
-        dplyr::group_by(site_code) %>%
+        dplyr::group_by(site_code, year) %>%
         dplyr::summarize(
             mean_leps = mean(all_leps, na.rm = TRUE),
             mean_cals = mean(all_cals, na.rm = TRUE),
@@ -467,7 +602,7 @@ headwater_distances <- function(head_dists, fish_data) {
         )
 
     head_dists_lice <- dplyr::left_join(
-        x = head_dists,
+        x = head_dists %>% dplyr::mutate(site_code = as.factor(site_code)),
         y = fish_data_headwater,
         by = "site_code"
     )
@@ -480,7 +615,8 @@ headwater_distances <- function(head_dists, fish_data) {
     knight_1_all <- ggplot() +
         geom_point(
             data = head_dists_lice,
-            aes(x = (knight_head_1 / 1000), y = mean_all)
+            aes(x = (knight_head_1 / 1000), y = mean_all, fill = year),
+            shape = 21
         ) +
         geom_errorbar(
             data = head_dists_lice,
@@ -814,4 +950,29 @@ headwater_distances <- function(head_dists, fish_data) {
         knight_2_juvs, wakeman_adult_leps, wakeman_all, wakeman_juv_leps,
         wakeman_juvs
     ))
+}
+
+seaway_distances <- function(seaway_data, fish_data) {
+    seaway_summed <- seaway_data
+    seaway_summed$total_distance <- rowSums(
+        seaway_summed[, 2:ncol(seaway_summed)]
+    )
+
+    seaway_hsd <- seaway_data %>%
+        dplyr::select(
+            sampling_sites, doctor_islets,
+            humphrey_rocks, sargeaunt_pass
+        ) %>%
+        dplyr::rowwise() %>%
+        dplyr::mutate(
+            hsd_sums = sum(
+                doctor_islets, humphrey_rocks, sargeaunt_pass
+            )
+        ) %>%
+        dplyr::select(sampling_sites, hsd_sums) %>%
+        dplyr::left_join(
+            x = .,
+            y = fish_data,
+            by = join_by("sampling_sites" == "site_name")
+        )
 }

@@ -71,13 +71,13 @@ std_err <- function(x) {
 #'
 #' @param fish_data the raw lice data pre- any messing
 #' @param sampling_locs the raw sampling location data
-lice_data_clean <- function(fish_data, sampling_locs) {
+lice_data_clean <- function(fish_data_raw, sampling_locs) {
     # first, make sure all the site_codes are right
-    fish_data$site_code[which(fish_data$site_code == "KoK")] <- "KOK"
+    fish_data_raw$site_code[which(fish_data_raw$site_code == "KoK")] <- "KOK"
 
     # do a join to put the regions on the fish dataframe
     fish_data <- dplyr::left_join(
-        x = fish_data,
+        x = fish_data_raw,
         y = sampling_locs[, c("site_name", "region")],
         by = "site_name"
     ) %>%
@@ -90,36 +90,47 @@ lice_data_clean <- function(fish_data, sampling_locs) {
         ) %>%
         # make a column of all lice
         dplyr::mutate(
-            all_leps = sum(
+            all_leps_spp = sum(
                 lep_cope, lep_pa_male, lep_pa_female,
                 lep_male, lep_nongravid, lep_gravid,
                 na.rm = TRUE
             ),
-            all_cals = sum(cal_cope, cal_mot, cal_gravid),
+            all_cals = sum(cal_cope, cal_mot, cal_gravid, na.rm = TRUE),
+            all_chals = sum(chal_a, chal_b, unid_chal, na.rm = TRUE),
             all_lice = sum(
                 lep_cope, cal_cope, chal_a, chal_b, lep_pa_male,
                 lep_pa_female, lep_male, lep_nongravid, lep_gravid,
                 cal_mot, cal_gravid, unid_cope, unid_chal, unid_pa,
-                unid_adult
+                unid_adult,
+                na.rm = TRUE
             )
         )
 
     # do the chalimus imputation so they're speciated
     props <- fish_data %>%
-        dplyr::select(year, all_leps, all_cals) %>%
+        dplyr::select(year, all_leps_spp, all_cals) %>%
         dplyr::rowwise() %>%
-        dplyr::mutate(prop_leps = all_leps / (all_leps + all_cals)) %>%
+        dplyr::mutate(prop_leps = all_leps_spp / (all_leps_spp + all_cals)) %>%
         dplyr::group_by(year) %>%
         dplyr::summarize(
             mean_prop_lep = mean(prop_leps, na.rm = TRUE)
         )
-
     # left join with this information
     fish_data <- dplyr::left_join(
         x = fish_data,
         y = props,
         by = "year"
     )
+    fish_data %>%
+        dplyr::rowwise() %>%
+        dplyr::group_by(year, month) %>%
+        dplyr::summarize(
+            chals = mean(all_chals, na.rm = TRUE),
+            all_leps = mean(all_leps_spp, na.rm = TRUE),
+            fish = n(),
+            prop_leps = mean(mean_prop_lep)
+        )
+
     # add in the leps and cals that are chalimus
     fish_data$lep_chals <- NA
     fish_data$cal_chals <- NA
@@ -127,12 +138,15 @@ lice_data_clean <- function(fish_data, sampling_locs) {
     # for each chalimus lice there is, draw from a bernouli distribution
     # which of the species it's going to be
     for (row in seq_len(nrow(fish_data))) {
-        num <- sum(fish_data[row, c("chal_a", "chal_b", "unid_chal")],
-            na.rm = TRUE
-        )
+        num <- fish_data[row, "all_chals"][[1]]
+        if (num == 0) {
+            fish_data$cal_chals[row] <- 0
+            fish_data$lep_chals[row] <- 0
+            next
+        }
+        leps <- 0
+        cals <- 0
         for (i in seq_len(num)) {
-            leps <- 0
-            cals <- 0
             val <- sample(c(1, 0), size = 1, prob = c(
                 fish_data$mean_prop_lep[row],
                 (1 - fish_data$mean_prop_lep[row])
@@ -142,16 +156,22 @@ lice_data_clean <- function(fish_data, sampling_locs) {
             } else {
                 cals <- cals + 1
             }
-            fish_data$cal_chals[row] <- cals
-            fish_data$lep_chals[row] <- leps
+        }
+        fish_data$cal_chals[row] <- cals
+        fish_data$lep_chals[row] <- leps
+        if ((fish_data$lep_chals[row] + fish_data$cal_chals[row]) != num) {
+            stop("PROBLEM")
         }
     }
+    sum(fish_data$lep_chals)
+    sum(fish_data$cal_chals)
+    sum(fish_data$all_chals)
 
     # now add the newly speciated values to the speciated values
     fish_data <- fish_data %>%
         dplyr::rowwise() %>%
         dplyr::mutate(
-            all_leps = all_leps + lep_chals,
+            all_leps = all_leps_spp + lep_chals,
             all_cals = all_cals + cal_chals,
             all_chal_cope = sum(
                 lep_cope, cal_cope, chal_a, chal_b, unid_cope,
@@ -174,6 +194,33 @@ lice_data_clean <- function(fish_data, sampling_locs) {
             juv_leps = sum(
                 lep_cope, lep_chals
             )
+        )
+    all((fish_data$all_leps_spp + fish_data$lep_chals) == (fish_data$all_leps),
+        na.rm = TRUE
+    )
+    fish_data %>%
+        dplyr::rowwise() %>%
+        dplyr::group_by(year, month) %>%
+        dplyr::summarize(
+            chals = mean(all_chals, na.rm = TRUE),
+            all_leps = mean(all_leps, na.rm = TRUE),
+            fish = n(),
+            prop_leps = mean(mean_prop_lep),
+            all_leps_spp = mean(all_leps_spp, na.rm = TRUE),
+            lep_chals = mean(lep_chals, na.rm = TRUE),
+            cal_chals = mean(cal_chals, na.rm = TRUE)
+        )
+    fish_data %>%
+        # dplyr::rowwise() %>%
+        dplyr::group_by(year, month) %>%
+        dplyr::summarize(
+            chals = sum(all_chals, na.rm = TRUE),
+            all_leps = sum(all_leps, na.rm = TRUE),
+            fish = n(),
+            # prop_leps = sum(mean_prop_lep),
+            all_spp_leps = sum(all_leps_spp, na.rm = TRUE),
+            lep_chals = sum(lep_chals, na.rm = TRUE),
+            cal_chals = sum(cal_chals, na.rm = TRUE)
         )
 
     return(fish_data)
