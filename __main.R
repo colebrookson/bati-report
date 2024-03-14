@@ -24,6 +24,10 @@ fish_data_raw <- readr::read_csv(
     here::here("./data/bati_fish_data_2023-10-04(corrected).csv")
 ) %>%
     standardize_names()
+fish_data_raw1 <- readr::read_csv(
+    here::here("./data/bati_fish_data_2023-10-04.csv")
+) %>%
+    standardize_names()
 
 seaway_data <- readr::read_csv(
     here::here("./data/bati_seaway_distances_to_farms.csv")
@@ -49,11 +53,45 @@ inventory <- readr::read_csv(
 )
 
 # some data cleaning ===========================================================
+fish_data1 <- lice_data_clean(fish_data_raw1, sampling_locs)
 fish_data <- lice_data_clean(fish_data_raw, sampling_locs)
+
+fish_data %>%
+    dplyr::group_by(year, month) %>%
+    dplyr::summarize(
+        mean_leps = mean(all_leps, na.rm = TRUE),
+        mean_lice = mean(all_lice, na.rm = TRUE),
+        mean_cals = mean(all_cals, na.rm = TRUE)
+    )
+fish_data1 %>%
+    dplyr::group_by(year, month) %>%
+    dplyr::summarize(
+        mean_leps = mean(all_leps, na.rm = TRUE),
+        mean_lice = mean(all_lice, na.rm = TRUE),
+        mean_cals = mean(all_cals, na.rm = TRUE)
+    )
 
 inventory <- inventory[which(inventory$month %in% c(3:6)), ]
 
 colnames(seaway_data)[1] <- "sampling_sites"
+
+# run models directly in main ==================================================
+head_dists_lice <- dplyr::left_join(
+        x = head_dists %>% dplyr::mutate(site_code = as.factor(site_code)),
+        y = fish_data,
+        by = "site_code"
+)
+
+knight1_df <- head_dists_lice %>% 
+dplyr::rowwise() %>%  
+dplyr::mutate(
+    route = ifelse(is.na(knight_head_1), 0, 1)
+) %>% 
+dplyr::select(site_code, knight_head_1, route)
+
+knight_leps <- glmmTMB::glmmTMB(
+    all_leps ~ 
+)
 
 # put some initial plots =======================================================
 plot_study_area(
