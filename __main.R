@@ -17,7 +17,7 @@ library(glmmTMB)
 #     version = "1.6-2",
 #     repos = "http://cran.us.r-project.org"
 # )
-# 
+#
 # installed.packages() |>
 #     as.data.frame() |>
 #     subset(Package == "TMB", select = c(LibPath, Version))
@@ -109,44 +109,61 @@ knight1_df <- head_dists_lice %>%
         site_code = as.factor(site_code)
     )
 knight2_df <- head_dists_lice %>%
-  dplyr::rowwise() %>%
-  dplyr::mutate(
-    route = as.factor(ifelse(is.na(knight_head_2), 0, 1)),
-    year = as.factor(year),
-    season = as.factor(season),
-    site_code = as.factor(site_code)
-  )
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+        route = as.factor(ifelse(is.na(knight_head_2), 0, 1)),
+        year = as.factor(year),
+        season = as.factor(season),
+        site_code = as.factor(site_code)
+    )
 wakeman_df <- head_dists_lice %>%
-  dplyr::rowwise() %>%
-  dplyr::mutate(
-    route = as.factor(ifelse(is.na(wakeman_head), 0, 1)),
-    year = as.factor(year),
-    season = as.factor(season),
-    site_code = as.factor(site_code)
-  )
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+        route = as.factor(ifelse(is.na(wakeman_head), 0, 1)),
+        year = as.factor(year),
+        season = as.factor(season),
+        site_code = as.factor(site_code)
+    )
 re_fit <- FALSE
-if(re_fit) {
-  source(here::here("./R/02_models.R"))
+if (re_fit) {
+    source(here::here("./R/02_models.R"))
 } else {
-  knight1_leps <- readRDS(here::here("./outputs/knight1-all-leps-model.rds"))
-  knight1_lep_adults <- readRDS(
-    here::here("./outputs/knight1-lep-adults-model.rds"))
-  knight1_lep_copes <- readRDS(
-    here::here("./outputs/knight1-lep-copes-model.rds"))
-  
-  knight2_leps <- readRDS(here::here("./outputs/knight2-all-leps-model.rds"))
-  knight2_lep_adults <- readRDS(
-    here::here("./outputs/knight2-lep-adults-model.rds"))
-  knight2_lep_copes <- readRDS(
-    here::here("./outputs/knight2-lep-copes-model.rds"))
-  
-  wakeman_leps <- readRDS(here::here("./outputs/wakeman-all-leps-model.rds"))
-  wakeman_lep_adults <- readRDS(
-    here::here("./outputs/wakeman-lep-adults-model.rds"))
-  wakeman_lep_copes <- readRDS(
-    here::here("./outputs/wakeman-lep-copes-model.rds"))
-  
+    knight1_leps <- readRDS(here::here("./outputs/knight1-all-leps-model.rds"))
+    knight1_lep_adults <- readRDS(
+        here::here("./outputs/knight1-lep-adults-model.rds")
+    )
+    knight1_lep_copes <- readRDS(
+        here::here("./outputs/knight1-lep-copes-model.rds")
+    )
+
+    knight2_leps <- readRDS(here::here("./outputs/knight2-all-leps-model.rds"))
+    knight2_lep_adults <- readRDS(
+        here::here("./outputs/knight2-lep-adults-model.rds")
+    )
+    knight2_lep_copes <- readRDS(
+        here::here("./outputs/knight2-lep-copes-model.rds")
+    )
+
+    wakeman_leps <- readRDS(here::here("./outputs/wakeman-all-leps-model.rds"))
+    wakeman_lep_adults <- readRDS(
+        here::here("./outputs/wakeman-lep-adults-model.rds")
+    )
+    wakeman_lep_copes <- readRDS(
+        here::here("./outputs/wakeman-lep-copes-model.rds")
+    )
 }
+
+## re-impute the values off the predictions ====================================
+wakeman_predict <- wakeman_df %>%
+    dplyr::select(route, site_code, year) %>%
+    dplyr::filter(route == 1) %>%
+    dplyr::mutate(season = as.factor(NA)) %>%
+    dplyr::distinct()
+
+
+stats::predict(wakeman_lep_copes,
+    newdata = wakeman_predict, type = "response"
+)
 
 # put some initial plots =======================================================
 plot_study_area(
