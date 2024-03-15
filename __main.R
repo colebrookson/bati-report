@@ -13,14 +13,14 @@ library(dplyr)
 library(ggplot2)
 library(sf)
 library(glmmTMB)
-remotes::install_version("Matrix",
-    version = "1.6-2",
-    repos = "http://cran.us.r-project.org"
-)
-
-installed.packages() |>
-    as.data.frame() |>
-    subset(Package == "TMB", select = c(LibPath, Version))
+# remotes::install_version("Matrix",
+#     version = "1.6-2",
+#     repos = "http://cran.us.r-project.org"
+# )
+# 
+# installed.packages() |>
+#     as.data.frame() |>
+#     subset(Package == "TMB", select = c(LibPath, Version))
 
 options(readr.show_col_types = FALSE)
 options(dplyr.warnings = FALSE)
@@ -108,17 +108,89 @@ knight1_df <- head_dists_lice %>%
         season = as.factor(season),
         site_code = as.factor(site_code)
     )
-knight_leps <- lme4::glmer(
+knight2_df <- head_dists_lice %>%
+  dplyr::rowwise() %>%
+  dplyr::mutate(
+    route = as.factor(ifelse(is.na(knight_head_2), 0, 1)),
+    year = as.factor(year),
+    season = as.factor(season),
+    site_code = as.factor(site_code)
+  )
+wakeman_df <- head_dists_lice %>%
+  dplyr::rowwise() %>%
+  dplyr::mutate(
+    route = as.factor(ifelse(is.na(wakeman_head), 0, 1)),
+    year = as.factor(year),
+    season = as.factor(season),
+    site_code = as.factor(site_code)
+  )
+
+## knight 1 models =============================================================
+knight1_leps <- glmmTMB::glmmTMB(
     all_leps ~ route * year + season + (1 | site_code),
     data = knight1_df,
     family = poisson(link = "log")
 )
-knight_leps <- glmmTMB::glmmTMB(
-    all_leps ~ route * year + season + (1 | site_code),
-    data = knight1_df,
-    family = poisson(link = "log")
+saveRDS(knight1_leps, here::here("./outputs/knight1-leps-model.rds"))
+
+knight1_lice <- glmmTMB::glmmTMB(
+  all_lice ~ route * year + season + (1 | site_code),
+  data = knight1_df,
+  family = poisson(link = "log")
 )
-hist(knight1_df$all_leps)
+saveRDS(knight1_lice, here::here("./outputs/knight1-lice-model.rds"))
+
+knight1_cals <- glmmTMB::glmmTMB(
+  all_cals ~ route * year + season + (1 | site_code),
+  data = knight1_df,
+  family = poisson(link = "log")
+)
+saveRDS(knight1_cals, here::here("./outputs/knight1-cals-model.rds"))
+
+## knight 2 models =============================================================
+knight2_leps <- glmmTMB::glmmTMB(
+  all_leps ~ route * year + season + (1 | site_code),
+  data = knight2_df,
+  family = poisson(link = "log")
+)
+saveRDS(knight2_leps, here::here("./outputs/knight2-leps-model.rds"))
+
+knight2_lice <- glmmTMB::glmmTMB(
+  all_lice ~ route * year + season + (1 | site_code),
+  data = knight2_df,
+  family = poisson(link = "log")
+)
+saveRDS(knight2_lice, here::here("./outputs/knight2-lice-model.rds"))
+
+knight2_cals <- glmmTMB::glmmTMB(
+  all_cals ~ route * year + season + (1 | site_code),
+  data = knight2_df,
+  family = poisson(link = "log")
+)
+saveRDS(knight2_cals, here::here("./outputs/knight2-cals-model.rds"))
+
+## wakeman models ==============================================================
+wakeman_leps <- glmmTMB::glmmTMB(
+  all_leps ~ route * year + season + (1 | site_code),
+  data = wakeman_df,
+  family = poisson(link = "log")
+)
+saveRDS(wakeman_leps, here::here("./outputs/wakeman-leps-model.rds"))
+
+wakeman_lice <- glmmTMB::glmmTMB(
+  all_lice ~ route * year + season + (1 | site_code),
+  data = wakeman_df,
+  family = poisson(link = "log")
+)
+saveRDS(wakeman_lice, here::here("./outputs/wakeman-lice-model.rds"))
+
+wakeman_cals <- glmmTMB::glmmTMB(
+  all_cals ~ route * year + season + (1 | site_code),
+  data = wakeman_df,
+  family = poisson(link = "log")
+)
+saveRDS(wakeman_cals, here::here("./outputs/wakeman-cals-model.rds"))
+
 # put some initial plots =======================================================
 plot_study_area(
     geo_data, farm_locs, sampling_locs,
