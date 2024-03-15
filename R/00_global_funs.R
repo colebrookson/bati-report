@@ -115,6 +115,36 @@ lice_data_clean <- function(fish_data_raw, sampling_locs) {
             )
         )
 
+    # now add in a "season" variable ===========================================
+
+    # find the number of rounds a year
+    fish_data %>%
+        dplyr::group_by(year) %>%
+        summarize(n = dplyr::n_distinct(round))
+    fish_data <- rbind(
+        (
+            fish_data %>% dplyr::filter(year == 2019) %>%
+                dplyr::rowwise() %>%
+                dplyr::mutate(
+                    season = ifelse(round %in% c(1, 2), "early", "late")
+                )
+        ),
+        (
+            fish_data %>% dplyr::filter(year == 2020) %>%
+                dplyr::rowwise() %>%
+                dplyr::mutate(
+                    season = ifelse(round == 1, "early", "late")
+                )
+        ),
+        (
+            fish_data %>% dplyr::filter(year %in% c(2021, 2022, 2023)) %>%
+                dplyr::rowwise() %>%
+                dplyr::mutate(
+                    season = ifelse(round %in% c(1, 2, 3), "early", "late")
+                )
+        )
+    )
+
     return(fish_data)
 }
 

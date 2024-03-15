@@ -368,9 +368,9 @@ time_series_lice <- function(fish_data, sampling_locs, inventory) {
             type_wild == "leps"
         )
     lep_v_lep <- ggplot(data = lep_lep[which(lep_lep$farm_type == "HDS"), ]) +
-        geom_point(aes(x = lice_farm, y = lice_wild)) +
+        geom_point(aes(x = leps, y = lice_wild)) +
         geom_smooth(
-            aes(x = lice_farm, y = lice_wild),
+            aes(x = leps, y = lice_wild),
             method = "lm",
             formula = y ~ x
         ) +
@@ -383,9 +383,9 @@ time_series_lice <- function(fish_data, sampling_locs, inventory) {
         data =
             lep_lep[which(lep_lep$farm_type == "HDS"), ]
     ) +
-        geom_point(aes(x = log10(lice_farm), y = log10(lice_wild))) +
+        geom_point(aes(x = log10(leps), y = log10(lice_wild))) +
         geom_smooth(
-            aes(x = log10(lice_farm), y = log10(lice_wild)),
+            aes(x = log10(leps), y = log10(lice_wild)),
             method = "lm",
             formula = y ~ x
         ) +
@@ -394,7 +394,6 @@ time_series_lice <- function(fish_data, sampling_locs, inventory) {
         here::here("./figs/wild-log-lep-vs-farm-log-lep-reg.png"),
         loglep_v_loglep
     )
-
 
     return(list(
         regions_all_leps, regions_all_leps_yr, all_cals_region,
