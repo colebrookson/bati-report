@@ -125,71 +125,75 @@ wakeman_df <- head_dists_lice %>%
     site_code = as.factor(site_code)
   )
 
-## knight 1 models =============================================================
-knight1_leps <- glmmTMB::glmmTMB(
+if(re_fit) {
+  ## knight 1 models ===========================================================
+  knight1_leps <- glmmTMB::glmmTMB(
     all_leps ~ route * year + season + (1 | site_code),
     data = knight1_df,
     family = poisson(link = "log")
-)
-saveRDS(knight1_leps, here::here("./outputs/knight1-leps-model.rds"))
-
-knight1_lice <- glmmTMB::glmmTMB(
-  all_lice ~ route * year + season + (1 | site_code),
-  data = knight1_df,
-  family = poisson(link = "log")
-)
-saveRDS(knight1_lice, here::here("./outputs/knight1-lice-model.rds"))
-
-knight1_cals <- glmmTMB::glmmTMB(
-  all_cals ~ route * year + season + (1 | site_code),
-  data = knight1_df,
-  family = poisson(link = "log")
-)
-saveRDS(knight1_cals, here::here("./outputs/knight1-cals-model.rds"))
-
-## knight 2 models =============================================================
-knight2_leps <- glmmTMB::glmmTMB(
-  all_leps ~ route * year + season + (1 | site_code),
-  data = knight2_df,
-  family = poisson(link = "log")
-)
-saveRDS(knight2_leps, here::here("./outputs/knight2-leps-model.rds"))
-
-knight2_lice <- glmmTMB::glmmTMB(
-  all_lice ~ route * year + season + (1 | site_code),
-  data = knight2_df,
-  family = poisson(link = "log")
-)
-saveRDS(knight2_lice, here::here("./outputs/knight2-lice-model.rds"))
-
-knight2_cals <- glmmTMB::glmmTMB(
-  all_cals ~ route * year + season + (1 | site_code),
-  data = knight2_df,
-  family = poisson(link = "log")
-)
-saveRDS(knight2_cals, here::here("./outputs/knight2-cals-model.rds"))
-
-## wakeman models ==============================================================
-wakeman_leps <- glmmTMB::glmmTMB(
-  all_leps ~ route * year + season + (1 | site_code),
-  data = wakeman_df,
-  family = poisson(link = "log")
-)
-saveRDS(wakeman_leps, here::here("./outputs/wakeman-leps-model.rds"))
-
-wakeman_lice <- glmmTMB::glmmTMB(
-  all_lice ~ route * year + season + (1 | site_code),
-  data = wakeman_df,
-  family = poisson(link = "log")
-)
-saveRDS(wakeman_lice, here::here("./outputs/wakeman-lice-model.rds"))
-
-wakeman_cals <- glmmTMB::glmmTMB(
-  all_cals ~ route * year + season + (1 | site_code),
-  data = wakeman_df,
-  family = poisson(link = "log")
-)
-saveRDS(wakeman_cals, here::here("./outputs/wakeman-cals-model.rds"))
+  )
+  saveRDS(knight1_leps, here::here("./outputs/knight1-all-leps-model.rds"))
+  
+  knight1_lep_adults <- glmmTMB::glmmTMB(
+    adult_leps ~ route * year + season + (1 | site_code),
+    data = knight1_df,
+    family = poisson(link = "log")
+  )
+  saveRDS(knight1_lep_adults, 
+          here::here("./outputs/knight1-lep-adults-model.rds"))
+  
+  knight1_lep_copes <- glmmTMB::glmmTMB(
+    lep_copes ~ route * year + season + (1 | site_code),
+    data = knight1_df,
+    family = poisson(link = "log")
+  )
+  saveRDS(knight1_lep_copes, 
+          here::here("./outputs/knight1-lep-copes-model.rds"))
+  
+  ## knight 2 models ===========================================================
+  knight2_leps <- glmmTMB::glmmTMB(
+    all_leps ~ route * year + season + (1 | site_code),
+    data = knight2_df,
+    family = poisson(link = "log")
+  )
+  saveRDS(knight2_leps, here::here("./outputs/knight2-leps-model.rds"))
+  
+  knight2_lice <- glmmTMB::glmmTMB(
+    all_lice ~ route * year + season + (1 | site_code),
+    data = knight2_df,
+    family = poisson(link = "log")
+  )
+  saveRDS(knight2_lice, here::here("./outputs/knight2-lice-model.rds"))
+  
+  knight2_cals <- glmmTMB::glmmTMB(
+    all_cals ~ route * year + season + (1 | site_code),
+    data = knight2_df,
+    family = poisson(link = "log")
+  )
+  saveRDS(knight2_cals, here::here("./outputs/knight2-cals-model.rds"))
+  
+  ## wakeman models ============================================================
+  wakeman_leps <- glmmTMB::glmmTMB(
+    all_leps ~ route * year + season + (1 | site_code),
+    data = wakeman_df,
+    family = poisson(link = "log")
+  )
+  saveRDS(wakeman_leps, here::here("./outputs/wakeman-leps-model.rds"))
+  
+  wakeman_lice <- glmmTMB::glmmTMB(
+    all_lice ~ route * year + season + (1 | site_code),
+    data = wakeman_df,
+    family = poisson(link = "log")
+  )
+  saveRDS(wakeman_lice, here::here("./outputs/wakeman-lice-model.rds"))
+  
+  wakeman_cals <- glmmTMB::glmmTMB(
+    all_cals ~ route * year + season + (1 | site_code),
+    data = wakeman_df,
+    family = poisson(link = "log")
+  )
+  saveRDS(wakeman_cals, here::here("./outputs/wakeman-cals-model.rds"))
+}
 
 # put some initial plots =======================================================
 plot_study_area(
