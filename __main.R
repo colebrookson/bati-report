@@ -119,3 +119,9 @@ maps_with_data(
 headwater_distances(
     head_dists, fish_data
 )
+
+
+df <- data.frame(
+    voter = c(rep("Tamara", 3), rep("Maddie", 3), rep("Cole", 3)),
+    
+)

@@ -334,14 +334,15 @@ time_series_lice <- function(fish_data, sampling_locs, inventory) {
         )
 
     fish_regression <- fish_data %>%
-        dplyr::select(year, month, date, all_leps, all_lice) %>%
+        dplyr::select(year, month, date, all_leps, all_lice, all_cals) %>%
         dplyr::group_by(year, month) %>%
         dplyr::mutate(
             month = as.factor(month)
         ) %>%
         dplyr::summarize(
             leps = mean(all_leps, na.rm = TRUE),
-            all = mean(all_lice, na.rm = TRUE)
+            all = mean(all_lice, na.rm = TRUE),
+            cals = mean(all_cals, na.rm = TRUE)
         ) %>%
         tidyr::pivot_longer(
             cols = c(cals, leps, all),
@@ -364,7 +365,7 @@ time_series_lice <- function(fish_data, sampling_locs, inventory) {
 
     lep_lep <- farm_wild_join %>%
         dplyr::filter(
-            type_farm == "leps", type_wild == "leps"
+            type_wild == "leps"
         )
     lep_v_lep <- ggplot(data = lep_lep[which(lep_lep$farm_type == "HDS"), ]) +
         geom_point(aes(x = lice_farm, y = lice_wild)) +
