@@ -101,7 +101,7 @@ lice_data_clean <- function(fish_data_raw, sampling_locs) {
                 na.rm = TRUE
             ),
             adult_cals = sum(
-                cal_mot, cal_gravid
+                cal_mot, cal_gravid,
                 na.rm = TRUE
             ),
             all_cals = sum(cal_cope, cal_mot, cal_gravid, na.rm = TRUE),

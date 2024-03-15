@@ -44,42 +44,51 @@ sampling_locs <- readr::read_csv(
 head_dists <- readr::read_csv(
     here::here("./data/headwater-distances.csv")
 )
-inventory <- readr::read_csv(
+inventory_old <- readr::read_csv(
     here::here("./data/old-farm-data.csv")
-) %>% dplyr::mutate(
+) 
+new_inventory_data <- readr::read_csv(
+    here::here("./data/re-formatted-inventory.csv")
+)
+
+# some data cleaning ===========================================================
+fish_data <- lice_data_clean(fish_data_raw, sampling_locs)
+
+# inventory cleaning
+inventory_old <- inventory_old[which(inventory_old$month %in% c(3:6)), ] %>% 
+  dplyr::select(-c(cal_av, cal_tot)) %>% 
+  dplyr::select(farm_name, year, month, inventory, lep_av, lep_tot, farm_num,
+                ktc, hump_sarg_doc)
+
+new_inventory_clean <- new_inventory_data %>% 
+  #dplyr::mutate(year = as.factor(year), month = as.factor(month)) %>% 
+  dplyr::group_by(year, month, farm_name, farm_num, ktc, hump_sarg_doc) %>% 
+  dplyr::summarize(
+    inventory = mean(inventory, na.rm = TRUE),
+    lep_tot = mean(lep_tot, na.rm = TRUE)
+  ) %>% 
+  dplyr::rowwise() %>% 
+  dplyr::mutate(
+    lep_av = inventory / lep_tot
+  ) %>% 
+  dplyr::select(farm_name, year, month, inventory, lep_av, lep_tot, farm_num,
+                ktc, hump_sarg_doc)
+
+# join the old and new inventory 
+inventory <- rbind(inventory_old, new_inventory_clean) %>% dplyr::mutate(
     date = lubridate::ym(
         paste(year, month, sep = "-")
     )
 )
 
-# some data cleaning ===========================================================
-fish_data1 <- lice_data_clean(fish_data_raw1, sampling_locs)
-fish_data <- lice_data_clean(fish_data_raw, sampling_locs)
-
-fish_data %>%
-    dplyr::group_by(year, month) %>%
-    dplyr::summarize(
-        mean_leps = mean(all_leps, na.rm = TRUE),
-        mean_lice = mean(all_lice, na.rm = TRUE),
-        mean_cals = mean(all_cals, na.rm = TRUE)
-    )
-fish_data1 %>%
-    dplyr::group_by(year, month) %>%
-    dplyr::summarize(
-        mean_leps = mean(all_leps, na.rm = TRUE),
-        mean_lice = mean(all_lice, na.rm = TRUE),
-        mean_cals = mean(all_cals, na.rm = TRUE)
-    )
-
-inventory <- inventory[which(inventory$month %in% c(3:6)), ]
-
+# seaway cleaning
 colnames(seaway_data)[1] <- "sampling_sites"
 
 # run models directly in main ==================================================
 head_dists_lice <- dplyr::left_join(
-        x = head_dists %>% dplyr::mutate(site_code = as.factor(site_code)),
-        y = fish_data,
-        by = "site_code"
+  x = head_dists %>% dplyr::mutate(site_code = as.factor(site_code)),
+  y = fish_data,
+  by = "site_code"
 )
 
 knight1_df <- head_dists_lice %>% 

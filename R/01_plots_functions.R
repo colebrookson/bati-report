@@ -220,7 +220,10 @@ time_series_lice <- function(fish_data, sampling_locs, inventory) {
             )
         )) +
         geom_smooth(
-            aes(x = date_ym, y = lice, group = type, colour = type, fill = type),
+            aes(
+                x = date_ym, y = lice, group = type,
+                colour = type, fill = type
+            ),
             method = "lm",
             formula = y ~ x,
             alpha = 0.2
@@ -314,39 +317,29 @@ time_series_lice <- function(fish_data, sampling_locs, inventory) {
         ) %>%
         dplyr::group_by(year, month, farm_type) %>%
         dplyr::summarize(
-            leps = mean(lep_tot, na.rm = TRUE),
-            cals = mean(cal_tot, na.rm = TRUE)
+            leps = mean(lep_tot, na.rm = TRUE)
         )
     farm_nongrouped <- inventory %>%
         dplyr::group_by(year, month) %>%
         dplyr::summarize(
-            leps = mean(lep_tot, na.rm = TRUE),
-            cals = mean(cal_tot, na.rm = TRUE)
+            leps = mean(lep_tot, na.rm = TRUE)
         ) %>%
         dplyr::mutate(
             farm_type = "all"
         ) %>%
-        dplyr::select(year, month, farm_type, leps, cals)
+        dplyr::select(year, month, farm_type, leps)
     farms_both <- rbind(farm_groups, farm_nongrouped) %>%
         dplyr::mutate(
             date_ym = lubridate::ym(paste(year, month, sep = "-"))
-        ) %>%
-        dplyr::rowwise() %>%
-        dplyr::mutate(all = sum(leps, cals, na.rm = TRUE)) %>%
-        tidyr::pivot_longer(
-            cols = c(cals, leps, all),
-            values_to = "lice_farm",
-            names_to = "type_farm"
         )
 
     fish_regression <- fish_data %>%
-        dplyr::select(year, month, date, all_cals, all_leps, all_lice) %>%
+        dplyr::select(year, month, date, all_leps, all_lice) %>%
         dplyr::group_by(year, month) %>%
         dplyr::mutate(
             month = as.factor(month)
         ) %>%
         dplyr::summarize(
-            cals = mean(all_cals, na.rm = TRUE),
             leps = mean(all_leps, na.rm = TRUE),
             all = mean(all_lice, na.rm = TRUE)
         ) %>%
