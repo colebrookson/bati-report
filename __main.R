@@ -169,7 +169,12 @@ knight_2_pred_df$pred_lep_adults = stats::predict(knight2_lep_adults,
                                                   type = "response")
 knight_2_pred_df$pred_lep_copes = stats::predict(knight2_lep_copes, 
                                                  type = "response")
-
+wakeman_pred_df <- wakeman_df 
+wakeman_pred_df$pred_leps = stats::predict(wakeman_leps, type = "response")
+wakeman_pred_df$pred_lep_adults = stats::predict(wakeman_lep_adults, 
+                                                  type = "response")
+wakeman_pred_df$pred_lep_copes = stats::predict(wakeman_lep_copes, 
+                                                 type = "response")
 
 # put some initial plots =======================================================
 plot_study_area(
