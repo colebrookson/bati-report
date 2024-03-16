@@ -207,7 +207,8 @@ theme_base <- function(base_size = 16, base_family = "") {
             rect = element_rect(
                 fill = "white",
                 colour = "black",
-                linetype = "solid"
+                linetype = "solid",
+                linewidth = 1.2
             ),
             text = element_text(
                 colour = "black",
@@ -216,13 +217,20 @@ theme_base <- function(base_size = 16, base_family = "") {
                 size = base_size,
                 vjust = 0.5,
                 hjust = 0.5,
-                lineheight = 1
+                lineheight = 1,
             ),
             panel.grid = element_blank(),
             strip.background = element_rect(colour = NA),
             legend.key = element_rect(colour = NA),
             title = element_text(size = rel(1)),
-            plot.title = element_text(size = rel(1.2), face = "bold"),
+            plot.title = element_text(
+                size = rel(1.5), face = "bold",
+                hjust = 0.5
+            ),
+            axis.title = element_text(
+                size = rel(1.05),
+                face = "bold"
+            ),
             strip.text = element_text(),
             axis.ticks.length = unit(0.5, "lines"),
             # add my addition here

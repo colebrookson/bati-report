@@ -28,6 +28,7 @@ options(dplyr.warnings = FALSE)
 # read in the functions files
 source(here::here("./R/00_global_funs.R"))
 source(here::here("./R/01_plots_functions.R"))
+source(here::here("./R/03_final_plots.R"))
 
 fish_data_raw <- readr::read_csv(
     here::here("./data/bati_fish_data_2023-10-04(corrected).csv")
@@ -89,6 +90,21 @@ inventory <- rbind(inventory_old, new_inventory_clean) %>% dplyr::mutate(
         paste(year, month, sep = "-")
     )
 )
+yearly_inventory <- as_tibble(inventory %>%
+    dplyr::group_by(farm_name, year, farm_num, ktc, hump_sarg_doc) %>%
+    dplyr::summarize(
+        inventory = mean(inventory, na.rm = TRUE),
+        lep_tot = mean(lep_tot, na.rm = TRUE),
+        lep_av = mean(lep_av, na.rm = TRUE)
+    ))
+all <- yearly_inventory %>%
+    tidyr::expand(year, farm_name)
+yearly_inventory <- yearly_inventory %>%
+    dplyr::right_join(all) %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+        lep_av = lep_tot / inventory
+    )
 
 # seaway cleaning
 colnames(seaway_data)[1] <- "sampling_sites"
@@ -102,7 +118,7 @@ head_dists_lice <- dplyr::left_join(
 
 knight1_df <- head_dists_lice %>%
     dplyr::rowwise() %>%
-    dplyr::filter(type == "sampling") %>% 
+    dplyr::filter(type == "sampling") %>%
     dplyr::mutate(
         route = as.factor(ifelse(is.na(knight_head_1), "no", "yes")),
         year = as.factor(year),
@@ -111,7 +127,7 @@ knight1_df <- head_dists_lice %>%
     )
 knight2_df <- head_dists_lice %>%
     dplyr::rowwise() %>%
-  dplyr::filter(type == "sampling") %>% 
+    dplyr::filter(type == "sampling") %>%
     dplyr::mutate(
         route = as.factor(ifelse(is.na(knight_head_2), "no", "yes")),
         year = as.factor(year),
@@ -120,13 +136,13 @@ knight2_df <- head_dists_lice %>%
     )
 wakeman_df <- head_dists_lice %>%
     dplyr::rowwise() %>%
-  dplyr::filter(type == "sampling") %>% 
+    dplyr::filter(type == "sampling") %>%
     dplyr::mutate(
         route = as.factor(ifelse(is.na(wakeman_head), "no", "yes")),
         year = as.factor(year),
         season = as.factor(season),
         site_code = as.factor(site_code)
-    ) 
+    )
 re_fit <- FALSE
 if (re_fit) {
     source(here::here("./R/02_models.R"))
@@ -157,24 +173,45 @@ if (re_fit) {
 }
 
 ## re-impute the values off the predictions ====================================
-knight_1_pred_df <- knight1_df 
-knight_1_pred_df$pred_leps = stats::predict(knight1_leps, type = "response")
-knight_1_pred_df$pred_lep_adults = stats::predict(knight1_lep_adults, 
-                                                  type = "response")
-knight_1_pred_df$pred_lep_copes = stats::predict(knight1_lep_copes, 
-                                                 type = "response")
-knight_2_pred_df <- knight2_df 
-knight_2_pred_df$pred_leps = stats::predict(knight2_leps, type = "response")
-knight_2_pred_df$pred_lep_adults = stats::predict(knight2_lep_adults, 
-                                                  type = "response")
-knight_2_pred_df$pred_lep_copes = stats::predict(knight2_lep_copes, 
-                                                 type = "response")
-wakeman_pred_df <- wakeman_df 
-wakeman_pred_df$pred_leps = stats::predict(wakeman_leps, type = "response")
-wakeman_pred_df$pred_lep_adults = stats::predict(wakeman_lep_adults, 
-                                                  type = "response")
-wakeman_pred_df$pred_lep_copes = stats::predict(wakeman_lep_copes, 
-                                                 type = "response")
+knight_1_pred_df <- knight1_df
+knight_2_pred_df <- knight2_df
+wakeman_pred_df <- wakeman_df
+knight_1_pred_df[, c("pred_lep_adults", "pred_se_adults")] <- data.frame(
+    stats::predict(knight1_lep_adults,
+        type = "response", se.fit = TRUE
+    )
+)
+knight_1_pred_df[, c("pred_lep_copes", "pred_se_copes")] <- data.frame(
+    stats::predict(knight1_lep_copes,
+        type = "response", se.fit = TRUE
+    )
+)
+knight_2_pred_df[, c("pred_lep_adults", "pred_se_adults")] <- data.frame(
+    stats::predict(knight2_lep_adults,
+        type = "response", se.fit = TRUE
+    )
+)
+knight_2_pred_df[, c("pred_lep_copes", "pred_se_copes")] <- data.frame(
+    stats::predict(knight2_lep_copes,
+        type = "response", se.fit = TRUE
+    )
+)
+wakeman_pred_df[, c("pred_lep_adults", "pred_se_adults")] <- data.frame(
+    stats::predict(wakeman_lep_adults,
+        type = "response", se.fit = TRUE
+    )
+)
+wakeman_pred_df[, c("pred_lep_copes", "pred_se_copes")] <- data.frame(
+    stats::predict(wakeman_lep_copes,
+        type = "response", se.fit = TRUE
+    )
+)
+
+# final plots ==================================================================
+
+## time series with all the lice through time ==================================
+
+timerseries <- final_timeseries(fish_data, title = "Sea Lice on Wild Fish")
 
 # put some initial plots =======================================================
 plot_study_area(
