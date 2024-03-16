@@ -102,28 +102,31 @@ head_dists_lice <- dplyr::left_join(
 
 knight1_df <- head_dists_lice %>%
     dplyr::rowwise() %>%
+    dplyr::filter(type == "sampling") %>% 
     dplyr::mutate(
-        route = as.factor(ifelse(is.na(knight_head_1), 0, 1)),
+        route = as.factor(ifelse(is.na(knight_head_1), "no", "yes")),
         year = as.factor(year),
         season = as.factor(season),
         site_code = as.factor(site_code)
     )
 knight2_df <- head_dists_lice %>%
     dplyr::rowwise() %>%
+  dplyr::filter(type == "sampling") %>% 
     dplyr::mutate(
-        route = as.factor(ifelse(is.na(knight_head_2), 0, 1)),
+        route = as.factor(ifelse(is.na(knight_head_2), "no", "yes")),
         year = as.factor(year),
         season = as.factor(season),
         site_code = as.factor(site_code)
     )
 wakeman_df <- head_dists_lice %>%
     dplyr::rowwise() %>%
+  dplyr::filter(type == "sampling") %>% 
     dplyr::mutate(
-        route = as.factor(ifelse(is.na(wakeman_head), 0, 1)),
+        route = as.factor(ifelse(is.na(wakeman_head), "no", "yes")),
         year = as.factor(year),
         season = as.factor(season),
         site_code = as.factor(site_code)
-    )
+    ) 
 re_fit <- FALSE
 if (re_fit) {
     source(here::here("./R/02_models.R"))
@@ -154,16 +157,19 @@ if (re_fit) {
 }
 
 ## re-impute the values off the predictions ====================================
-wakeman_predict <- wakeman_df %>%
-    dplyr::select(route, site_code, year) %>%
-    dplyr::filter(route == 1) %>%
-    dplyr::mutate(season = as.factor(NA)) %>%
-    dplyr::distinct()
+knight_1_pred_df <- knight1_df 
+knight_1_pred_df$pred_leps = stats::predict(knight1_leps, type = "response")
+knight_1_pred_df$pred_lep_adults = stats::predict(knight1_lep_adults, 
+                                                  type = "response")
+knight_1_pred_df$pred_lep_copes = stats::predict(knight1_lep_copes, 
+                                                 type = "response")
+knight_2_pred_df <- knight2_df 
+knight_2_pred_df$pred_leps = stats::predict(knight2_leps, type = "response")
+knight_2_pred_df$pred_lep_adults = stats::predict(knight2_lep_adults, 
+                                                  type = "response")
+knight_2_pred_df$pred_lep_copes = stats::predict(knight2_lep_copes, 
+                                                 type = "response")
 
-
-stats::predict(wakeman_lep_copes,
-    newdata = wakeman_predict, type = "response"
-)
 
 # put some initial plots =======================================================
 plot_study_area(

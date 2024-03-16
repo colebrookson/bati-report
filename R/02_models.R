@@ -2,14 +2,14 @@
 knight1_leps <- glmmTMB::glmmTMB(
   all_leps ~ route * year + season + (1 | site_code),
   data = knight1_df,
-  family = poisson(link = "log")
+  family = "nbinom2"
 )
 saveRDS(knight1_leps, here::here("./outputs/knight1-all-leps-model.rds"))
 
 knight1_lep_adults <- glmmTMB::glmmTMB(
   adult_leps ~ route * year + season + (1 | site_code),
   data = knight1_df,
-  family = poisson(link = "log")
+  family = "nbinom2"
 )
 saveRDS(knight1_lep_adults, 
         here::here("./outputs/knight1-lep-adults-model.rds"))
@@ -17,7 +17,7 @@ saveRDS(knight1_lep_adults,
 knight1_lep_copes <- glmmTMB::glmmTMB(
   lep_cope ~ route * year + season + (1 | site_code),
   data = knight1_df,
-  family = poisson(link = "log")
+  family = "nbinom2"
 )
 saveRDS(knight1_lep_copes, 
         here::here("./outputs/knight1-lep-copes-model.rds"))
@@ -26,14 +26,14 @@ saveRDS(knight1_lep_copes,
 knight2_leps <- glmmTMB::glmmTMB(
   all_leps ~ route * year + season + (1 | site_code),
   data = knight2_df,
-  family = poisson(link = "log")
+  family = "nbinom2"
 )
 saveRDS(knight2_leps, here::here("./outputs/knight2-all-leps-model.rds"))
 
 knight2_lep_adults <- glmmTMB::glmmTMB(
   adult_leps ~ route * year + season + (1 | site_code),
   data = knight2_df,
-  family = poisson(link = "log")
+  family = "nbinom2"
 )
 saveRDS(knight2_lep_adults, 
         here::here("./outputs/knight2-lep-adults-model.rds"))
@@ -41,7 +41,7 @@ saveRDS(knight2_lep_adults,
 knight2_lep_copes <- glmmTMB::glmmTMB(
   lep_cope ~ route * year + season + (1 | site_code),
   data = knight2_df,
-  family = poisson(link = "log")
+  family = "nbinom2"
 )
 saveRDS(knight2_lep_copes, 
         here::here("./outputs/knight2-lep-copes-model.rds"))
@@ -50,14 +50,14 @@ saveRDS(knight2_lep_copes,
 wakeman_leps <- glmmTMB::glmmTMB(
   all_leps ~ route * year + season + (1 | site_code),
   data = wakeman_df,
-  family = poisson(link = "log")
+  family = "nbinom2"
 )
 saveRDS(wakeman_leps, here::here("./outputs/wakeman-all-leps-model.rds"))
 
 wakeman_lep_adults <- glmmTMB::glmmTMB(
   adult_leps ~ route * year + season + (1 | site_code),
   data = wakeman_df,
-  family = poisson(link = "log")
+  family = "nbinom2"
 )
 saveRDS(wakeman_lep_adults, 
         here::here("./outputs/wakeman-lep-adults-model.rds"))
@@ -65,7 +65,8 @@ saveRDS(wakeman_lep_adults,
 wakeman_lep_copes <- glmmTMB::glmmTMB(
   lep_cope ~ route * year + season + (1 | site_code),
   data = wakeman_df,
-  family = poisson(link = "log")
+  family = "nbinom2"
 )
 saveRDS(wakeman_lep_copes, 
         here::here("./outputs/wakeman-lep-copes-model.rds"))
+
