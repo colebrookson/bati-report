@@ -56,6 +56,9 @@ plot_study_area <- function(
         dplyr::mutate(
             # use this so in the plot I can make the labels different fonts
             ff = ifelse(type == "farm", "bold", "plain")
+        ) %>%
+        dplyr::filter(
+            type != "farm"
         )
 
     basic_map <- ggplot() +
@@ -74,8 +77,14 @@ plot_study_area <- function(
         geom_sf(data = bc_cropped) +
         geom_sf(data = all_locs, aes(fill = type, shape = type), size = 2) +
         coord_sf(datum = "+proj=utm +zone=9 +datum=NAD83 +unit=m") +
-        scale_shape_manual("Location", values = c(21, 22)) +
-        scale_fill_manual("Location", values = c("#EA738D", "#89ABE3")) +
+        scale_shape_manual("Sampling Location",
+            values = c(21, 22),
+            labels = c("")
+        ) +
+        scale_fill_manual("Sampling Location",
+            values = c("#EA738D", "#89ABE3"),
+            labels = c("")
+        ) +
         theme_base() +
         ggrepel::geom_text_repel(
             data = all_locs,
@@ -89,7 +98,23 @@ plot_study_area <- function(
         theme(
             axis.text = element_blank(),
             axis.ticks = element_blank(),
-            legend.position = c(0.85, 0.8)
+            legend.position = c(0.8, 0.8)
+        ) +
+        guides(
+            fill = guide_legend(
+                override.aes = list(
+                    size = 2,
+                    alpha = 1
+                ), ,
+                title.position = "right"
+            ),
+            shape = guide_legend(
+                override.aes = list(
+                    size = 2,
+                    alpha = 1
+                ), ,
+                title.position = "right"
+            )
         )
     if (to_save) {
         ggplot2::ggsave(
