@@ -59,6 +59,17 @@ plot_study_area <- function(
         ) %>%
         dplyr::filter(
             type != "farm"
+        ) %>%
+        dplyr::left_join(
+            x = .,
+            y = head_dists[which(head_dists$type == "sampling"), ],
+            by = join_by("name" == "site_code")
+        ) %>%
+        dplyr::rowwise() %>%
+        dplyr::mutate(
+            route = dplyr::case_when(
+                !is.na(wakeman_head) & !is.na(knight_head_1) ~ 
+            )
         )
 
     basic_map <- ggplot() +
@@ -75,30 +86,21 @@ plot_study_area <- function(
         )
     named_map <- ggplot() +
         geom_sf(data = bc_cropped) +
-        geom_sf(data = all_locs, aes(fill = type, shape = type), size = 2) +
+        geom_sf(data = all_locs, size = 3, shape = 21, fill = "#ffb000") +
         coord_sf(datum = "+proj=utm +zone=9 +datum=NAD83 +unit=m") +
-        scale_shape_manual("Sampling Location",
-            values = c(21, 22),
-            labels = c("")
-        ) +
         scale_fill_manual("Sampling Location",
             values = c("#EA738D", "#89ABE3"),
             labels = c("")
         ) +
+        labs(x = "", y = "") +
         theme_base() +
-        ggrepel::geom_text_repel(
-            data = all_locs,
-            aes(
-                x = long, y = lat,
-                label = names_code, fontface = ff
-            ),
-            size = 3,
-            max.overlaps = 20
-        ) +
+
         theme(
             axis.text = element_blank(),
             axis.ticks = element_blank(),
-            legend.position = c(0.8, 0.8)
+            legend.position = c(0.8, 0.8),
+            panel.background = element_rect(fill='transparent'), #transparent panel bg
+        plot.background = element_rect(fill='transparent', color=NA),
         ) +
         guides(
             fill = guide_legend(
@@ -123,7 +125,9 @@ plot_study_area <- function(
         )
         ggplot2::ggsave(
             here::here("./figs/maps/named-map.png"),
-            named_map
+            named_map,
+            dpi = 600,
+            bg='transparent'
         )
     }
 

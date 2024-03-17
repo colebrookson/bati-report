@@ -129,7 +129,7 @@ k1_headwater_distances <- function(knight_1_pred_df, head_dists, inventory) {
                 labels = c("")
             ) +
             theme(
-                legend.position = c(0.1, 0.8),
+                legend.position = c(0.18, 0.8),
                 legend.background = element_rect(colour = "grey80")
             ) +
             guides(
@@ -143,7 +143,9 @@ k1_headwater_distances <- function(knight_1_pred_df, head_dists, inventory) {
             )
         ggplot2::ggsave(
             paste0(here::here("./figs/final/kn1-adults-"), yr, ".png"),
-            k1_adults
+            k1_adults,
+            dpi = 300,
+            height = 8, width = 8,
         )
 
         k1_copes <- ggplot() +
@@ -196,7 +198,7 @@ k1_headwater_distances <- function(knight_1_pred_df, head_dists, inventory) {
                 labels = c("")
             ) +
             theme(
-                legend.position = c(0.1, 0.8),
+                legend.position = c(0.18, 0.8),
                 legend.background = element_rect(colour = "grey80")
             ) +
             guides(
@@ -210,7 +212,9 @@ k1_headwater_distances <- function(knight_1_pred_df, head_dists, inventory) {
             )
         ggplot2::ggsave(
             paste0(here::here("./figs/final/kn1-copes-"), yr, ".png"),
-            k1_copes
+            k1_copes,
+            dpi = 300,
+            height = 8, width = 8,
         )
     }
 }
@@ -308,7 +312,7 @@ k2_headwater_distances <- function(knight_2_pred_df, head_dists, inventory) {
                 labels = c("")
             ) +
             theme(
-                legend.position = c(0.1, 0.8),
+                legend.position = c(0.18, 0.8),
                 legend.background = element_rect(colour = "grey80")
             ) +
             guides(
@@ -322,7 +326,9 @@ k2_headwater_distances <- function(knight_2_pred_df, head_dists, inventory) {
             )
         ggplot2::ggsave(
             paste0(here::here("./figs/final/kn2-adults-"), yr, ".png"),
-            k2_adults
+            k2_adults,
+            dpi = 300,
+            height = 8, width = 8,
         )
 
         k2_copes <- ggplot() +
@@ -377,7 +383,7 @@ k2_headwater_distances <- function(knight_2_pred_df, head_dists, inventory) {
                 labels = c("")
             ) +
             theme(
-                legend.position = c(0.1, 0.8),
+                legend.position = c(0.18, 0.8),
                 legend.background = element_rect(colour = "grey80")
             ) +
             guides(
@@ -391,7 +397,9 @@ k2_headwater_distances <- function(knight_2_pred_df, head_dists, inventory) {
             )
         ggplot2::ggsave(
             paste0(here::here("./figs/final/kn2-copes-"), yr, ".png"),
-            k2_copes
+            k2_copes,
+            dpi = 300,
+            height = 8, width = 8,
         )
     }
 }
@@ -491,7 +499,7 @@ wake_headwater_distances <- function(wakeman_pred_df, head_dists, inventory) {
                 labels = c("")
             ) +
             theme(
-                legend.position = c(0.1, 0.8),
+                legend.position = c(0.18, 0.8),
                 legend.background = element_rect(colour = "grey80")
             ) +
             guides(
@@ -505,7 +513,9 @@ wake_headwater_distances <- function(wakeman_pred_df, head_dists, inventory) {
             )
         ggplot2::ggsave(
             paste0(here::here("./figs/final/wake-adults-"), yr, ".png"),
-            wake_adults
+            wake_adults,
+            dpi = 300,
+            height = 8, width = 8,
         )
 
         wake_copes <- ggplot() +
@@ -560,7 +570,7 @@ wake_headwater_distances <- function(wakeman_pred_df, head_dists, inventory) {
                 labels = c("")
             ) +
             theme(
-                legend.position = c(0.1, 0.8),
+                legend.position = c(0.18, 0.8),
                 legend.background = element_rect(colour = "grey80")
             ) +
             guides(
@@ -574,7 +584,49 @@ wake_headwater_distances <- function(wakeman_pred_df, head_dists, inventory) {
             )
         ggplot2::ggsave(
             paste0(here::here("./figs/final/wake-copes-"), yr, ".png"),
-            wake_copes
+            wake_copes,
+            dpi = 300,
+            height = 8, width = 8,
         )
     }
+}
+maps_thru_time <- function() {
+    # get farm data to an easy-to-plot way
+    mean_farm <- inventory %>%
+        dplyr::group_by(year, farm_name) %>%
+        dplyr::summarize(
+            inventory = mean(inventory, na.rm = TRUE),
+            lice = mean(lep_tot, na.rm = TRUE)
+        ) %>%
+        tidyr::pivot_longer(
+            values_to = "vals",
+            cols = c("inventory", "lice"),
+            names_to = "type"
+        )
+    farms_locs_inventory <- dplyr::left_join(
+        x = mean_farm,
+        y = farm_locs,
+        by = "farm_name"
+    )
+    # turn shapefile into something workable
+    geo_data_sf_bc <- sf::st_as_sf(geo_data)
+
+    bc_utm <- st_transform(geo_data_sf_bc,
+        crs = "+proj=utm +zone=9 +datum=NAD83 +unit=m"
+    )
+    bc_cropped <- sf::st_crop(bc_utm,
+        xmin = 644000,
+        xmax = 726000,
+        ymin = 5600000,
+        ymax = 5660000
+    )
+
+    # put the farm locations into the proper utm format for the mapping
+    farms_sf <- sf::st_as_sf(farms_locs_inventory, coords = c("long", "lat"))
+    sf::st_crs(farms_sf) <- 4326 # set the coordinates for WGS84
+    farms_utm <- sf::st_transform(farms_sf,
+        crs = "+proj=utm +zone=9 +datum=NAD83 +unit=m"
+    )
+    farms_utm$long <- sf::st_coordinates(farms_utm)[, 1]
+    farms_utm$lat <- sf::st_coordinates(farms_utm)[, 2]
 }
