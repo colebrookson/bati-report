@@ -629,4 +629,152 @@ maps_thru_time <- function() {
     )
     farms_utm$long <- sf::st_coordinates(farms_utm)[, 1]
     farms_utm$lat <- sf::st_coordinates(farms_utm)[, 2]
+
+    yr <- 2019
+    temp_farms <- farms_utm[which(farms_utm$year == yr &
+        farms_utm$type == "lice"), ]
+    p_2019 <- ggplot() +
+        geom_sf(data = bc_cropped, fill = "grey95") +
+        geom_sf(data = temp_farms, aes(
+            size = vals,
+            fill = vals
+        ), shape = 22, colour = "black", stroke = 1.2) +
+        coord_sf(datum = "+proj=utm +zone=9 +datum=NAD83 +unit=m") +
+        theme_base() +
+        scale_fill_viridis_c("Lice on Farms - 2019",
+            guide = "legend", option = "C",
+            labels = function(x) format(x, big.mark = ",", scientific = FALSE),
+            breaks = c(200000, 475000, 750000)
+        ) +
+        scale_size_continuous("Lice on Farms - 2019",
+            labels = function(x) format(x, big.mark = ",", scientific = FALSE),
+            breaks = c(200000, 475000, 750000)
+        ) +
+        labs(x = "", y = "") +
+        theme(
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            legend.position = c(0.8, 0.8)
+        )
+    ggplot2::ggsave(
+        here::here("./figs/final/farm-2019.png"),
+        p_2019,
+        dpi = 300,
+        height = 6.5, width = 8.5,
+    )
+
+    ## fish data ===============================================================
+    # plot sampling locs with data
+    fish_data_summed <- fish_data %>%
+        dplyr::group_by(site_code, year) %>%
+        dplyr::summarize(
+            mean_leps = mean(all_leps, na.rm = TRUE),
+            mean_lep_adults = mean(adult_leps, na.rm = TRUE)
+        )
+    fish_data_locs <- dplyr::left_join(
+        x = fish_data_summed,
+        y = sampling_locs,
+        by = "site_code"
+    )
+    # do the same with the sampling locations
+    fish_sf <- sf::st_as_sf(fish_data_locs,
+        coords = c("lon_site_dd", "lat_site_dd")
+    )
+    sf::st_crs(fish_sf) <- 4326 # set the coordinates for WGS84
+    fish_utm <- sf::st_transform(fish_sf,
+        crs = "+proj=utm +zone=9 +datum=NAD83 +unit=m"
+    )
+    fish_utm$long <- sf::st_coordinates(fish_utm)[, 1]
+    fish_utm$lat <- sf::st_coordinates(fish_utm)[, 2]
+
+    temp_fish <- fish_utm[which(fish_utm$year == yr), ]
+    pwild_2019 <- ggplot() +
+        geom_sf(data = bc_cropped, fill = "grey95") +
+        geom_sf(data = temp_fish, aes(
+            size = mean_leps,
+            fill = mean_leps
+        ), shape = 21, colour = "black", stroke = 1.2) +
+        coord_sf(datum = "+proj=utm +zone=9 +datum=NAD83 +unit=m") +
+        theme_base() +
+        scale_fill_viridis_c("Lice per fish - 2019",
+            guide = "legend"
+        ) +
+        scale_size_continuous("Lice per fish - 2019") +
+        labs(x = "", y = "") +
+        theme(
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            legend.position = c(0.8, 0.8)
+        )
+    ggplot2::ggsave(
+        here::here("./figs/final/wild-2019.png"),
+        pwild_2019,
+        dpi = 300,
+        height = 6.5, width = 8.5,
+    )
+    # 2023
+    yr <- 2023
+    temp_farms <- farms_utm[which(farms_utm$year == yr &
+        farms_utm$type == "lice"), ]
+    p_2023 <- ggplot() +
+        geom_sf(data = bc_cropped, fill = "grey95") +
+        geom_sf(data = temp_farms, aes(
+            size = vals,
+            fill = vals
+        ), shape = 22, colour = "black", stroke = 1.2) +
+        coord_sf(datum = "+proj=utm +zone=9 +datum=NAD83 +unit=m") +
+        theme_base() +
+        scale_fill_viridis_c("Lice on Farms - 2023",
+            guide = "legend", option = "C",
+            labels = function(x) format(x, big.mark = ",", scientific = FALSE)
+        ) +
+        scale_size_continuous("Lice on Farms - 2023",
+            labels = function(x) format(x, big.mark = ",", scientific = FALSE)
+        ) +
+        labs(x = "", y = "") +
+        theme(
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            legend.position = c(0.8, 0.8)
+        )
+    ggplot2::ggsave(
+        here::here("./figs/final/farm-2023.png"),
+        p_2023,
+        dpi = 300,
+        height = 6.5, width = 8.5,
+    )
+    temp_fish <- fish_utm[which(fish_utm$year == yr), ]
+    pwild_2023 <- ggplot() +
+        geom_sf(data = bc_cropped, fill = "grey95") +
+        geom_sf(data = temp_fish, aes(
+            size = mean_leps,
+            fill = mean_leps
+        ), shape = 21, colour = "black", stroke = 1.2) +
+        coord_sf(datum = "+proj=utm +zone=9 +datum=NAD83 +unit=m") +
+        theme_base() +
+        scale_fill_viridis_c("Lice per fish - 2023",
+            guide = "legend"
+        ) +
+        scale_size_continuous("Lice per fish - 2023") +
+        labs(x = "", y = "") +
+        theme(
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            legend.position = c(0.8, 0.8)
+        )
+    ggplot2::ggsave(
+        here::here("./figs/final/wild-2023.png"),
+        pwild_2023,
+        dpi = 300,
+        height = 6.5, width = 8.5,
+    )
+
+    library(patchwork)
+    stacked <- (p_2019 + pwild_2019) / (p_2023 + pwild_2023)
+    ggplot2::ggsave(
+        here::here("./figs/final/all-4-maps.png"),
+        stacked,
+        dpi = 300,
+        height = 14, width = 19,
+    )
 }
