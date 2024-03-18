@@ -1,4 +1,11 @@
 ## knight 1 models ===========================================================
+knight1_lice <- glmmTMB::glmmTMB(
+  all_lice ~ route * year + season + (1 | site_code),
+  data = knight1_df,
+  family = "nbinom2"
+)
+saveRDS(knight1_lice, here::here("./outputs/knight1-all-lice-model.rds"))
+
 knight1_leps <- glmmTMB::glmmTMB(
   all_leps ~ route * year + season + (1 | site_code),
   data = knight1_df,
