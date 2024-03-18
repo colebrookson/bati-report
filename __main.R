@@ -148,6 +148,7 @@ re_fit <- FALSE
 if (re_fit) {
     source(here::here("./R/02_models.R"))
 } else {
+    knight1_lice <- readRDS(here::here("./outputs/knight1-all-lice-model.rds"))
     knight1_leps <- readRDS(here::here("./outputs/knight1-all-leps-model.rds"))
     knight1_lep_adults <- readRDS(
         here::here("./outputs/knight1-lep-adults-model.rds")
@@ -156,6 +157,7 @@ if (re_fit) {
         here::here("./outputs/knight1-lep-copes-model.rds")
     )
 
+    knight2_lice <- readRDS(here::here("./outputs/knight2-all-lice-model.rds"))
     knight2_leps <- readRDS(here::here("./outputs/knight2-all-leps-model.rds"))
     knight2_lep_adults <- readRDS(
         here::here("./outputs/knight2-lep-adults-model.rds")
@@ -164,6 +166,7 @@ if (re_fit) {
         here::here("./outputs/knight2-lep-copes-model.rds")
     )
 
+    wakeman_lice <- readRDS(here::here("./outputs/wakeman-all-lice-model.rds"))
     wakeman_leps <- readRDS(here::here("./outputs/wakeman-all-leps-model.rds"))
     wakeman_lep_adults <- readRDS(
         here::here("./outputs/wakeman-lep-adults-model.rds")
@@ -187,6 +190,11 @@ knight_1_pred_df[, c("pred_lep_copes", "pred_se_copes")] <- data.frame(
         type = "response", se.fit = TRUE
     )
 )
+knight_1_pred_df[, c("pred_lice", "pred_se_lice")] <- data.frame(
+    stats::predict(knight1_lice,
+        type = "response", se.fit = TRUE
+    )
+)
 knight_2_pred_df[, c("pred_lep_adults", "pred_se_adults")] <- data.frame(
     stats::predict(knight2_lep_adults,
         type = "response", se.fit = TRUE
@@ -194,6 +202,11 @@ knight_2_pred_df[, c("pred_lep_adults", "pred_se_adults")] <- data.frame(
 )
 knight_2_pred_df[, c("pred_lep_copes", "pred_se_copes")] <- data.frame(
     stats::predict(knight2_lep_copes,
+        type = "response", se.fit = TRUE
+    )
+)
+knight_2_pred_df[, c("pred_lice", "pred_se_lice")] <- data.frame(
+    stats::predict(knight2_lice,
         type = "response", se.fit = TRUE
     )
 )
@@ -207,14 +220,24 @@ wakeman_pred_df[, c("pred_lep_copes", "pred_se_copes")] <- data.frame(
         type = "response", se.fit = TRUE
     )
 )
-
-timeseries_pred_df_knight1 <- data.frame(
-    year = unique(knight1_df$year),
-    route = "yes",
-    season = NA,
-    site_code = NA
+wakeman_pred_df[, c("pred_lice", "pred_se_lice")] <- data.frame(
+    stats::predict(wakeman_lice,
+        type = "response", se.fit = TRUE
+    )
 )
 
+# timeseries_pred_df_knight1 <- data.frame(
+#     year = unique(knight1_df$year),
+#     route = "yes",
+#     season = as.factor(NA),
+#     site_code = as.factor(NA)
+# )
+# timeseries_pred_df_knight1[, c("pred_lice", "pred_se_lice")] <- data.frame(
+#     stats::predict(knight1_lice,
+#         newdata = timeseries_pred_df_knight1,
+#         type = "response", se.fit = TRUE
+#     )
+# )
 
 # final plots ==================================================================
 

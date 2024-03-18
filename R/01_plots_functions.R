@@ -82,55 +82,53 @@ plot_study_area <- function(
         )
     named_map <- ggplot() +
         geom_sf(data = bc_cropped) +
-        geom_sf(data = all_locs, size = 3, aes(shape = region, fill = region)) +
-        scale_fill_manual(
-            "Region",
-            values = c("#785ef0", "#ffb000", "#dc267f")
-        ) +
-        scale_shape_manual(
-            "Region",
-            values = c(21, 22, 23)
-        ) +
+        geom_sf(data = all_locs, size = 3, aes(fill = "black")) +
+        # scale_fill_manual(
+        #     "Region",
+        #     values = c("#785ef0", "#ffb000", "#dc267f")
+        # ) +
+        # scale_shape_manual(
+        #     "Region",
+        #     values = c(21, 22, 23)
+        # ) +
         coord_sf(datum = "+proj=utm +zone=9 +datum=NAD83 +unit=m") +
-        scale_fill_manual("Sampling Location",
-            values = c("#EA738D", "#89ABE3"),
-            labels = c("")
-        ) +
         labs(x = "", y = "") +
         theme_base() +
         theme(
             axis.text = element_blank(),
             axis.ticks = element_blank(),
-            legend.position = c(0.8, 0.8),
+            legend.position = "none",
             panel.background = element_rect(fill = "transparent"), # transparent panel bg
             plot.background = element_rect(fill = "transparent", color = NA),
-        ) +
-        guides(
-            fill = guide_legend(
-                override.aes = list(
-                    size = 2,
-                    alpha = 1
-                ), ,
-                title.position = "right"
-            ),
-            shape = guide_legend(
-                override.aes = list(
-                    size = 2,
-                    alpha = 1
-                ), ,
-                title.position = "right"
-            )
         )
+    guides(
+        fill = guide_legend(
+            override.aes = list(
+                size = 2,
+                alpha = 1
+            ), ,
+            title.position = "right"
+        ),
+        shape = guide_legend(
+            override.aes = list(
+                size = 2,
+                alpha = 1
+            ), ,
+            title.position = "right"
+        )
+    )
     if (to_save) {
         ggplot2::ggsave(
             here::here("./figs/maps/basic-map.png"),
             basic_map
         )
         ggplot2::ggsave(
-            here::here("./figs/maps/named-map.png"),
+            here::here("./figs/maps/named-map-with-regions.png"),
             named_map,
             dpi = 600,
-            bg = "transparent"
+            bg = "transparent",
+            height = 6.25,
+            width = 10
         )
     }
 

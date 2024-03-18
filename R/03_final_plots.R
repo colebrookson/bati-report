@@ -1,30 +1,108 @@
 final_timeseries <- function(fish_data, title = "Sea Lice on Wild Fish") {
-    plot_df <- fish_data %>%
-        dplyr::select(year, month, date, all_lice, region) %>%
-        dplyr::group_by(year, region) %>%
+    wakeman_pred_lice <- wakeman_pred_df %>%
+        dplyr::filter(route == "yes") %>%
+        dplyr::select(pred_lice, pred_se_lice, year) %>%
+        dplyr::group_by(year) %>%
         dplyr::summarize(
-            mean_lice = mean(all_lice, na.rm = TRUE),
-            se_lice = std_err(all_lice)
+            mean_lice = mean(pred_lice, na.rm = TRUE),
+            se_lice = mean(pred_se_lice, na.rm = TRUE)
+        ) %>%
+        dplyr::mutate(
+            route = "Wakeman"
+        )
+    knight_1_pred_lice <- knight_1_pred_df %>%
+        dplyr::filter(route == "yes") %>%
+        dplyr::select(pred_lice, pred_se_lice, year) %>%
+        dplyr::group_by(year) %>%
+        dplyr::summarize(
+            mean_lice = mean(pred_lice, na.rm = TRUE),
+            se_lice = mean(pred_se_lice, na.rm = TRUE)
+        ) %>%
+        dplyr::mutate(
+            route = "Knight"
+        )
+    knight_2_pred_lice <- knight_2_pred_df %>%
+        dplyr::filter(route == "yes") %>%
+        dplyr::select(pred_lice, pred_se_lice, year) %>%
+        dplyr::group_by(year) %>%
+        dplyr::summarize(
+            mean_lice = mean(pred_lice, na.rm = TRUE),
+            se_lice = mean(pred_se_lice, na.rm = TRUE)
+        ) %>%
+        dplyr::mutate(
+            route = "Tribune"
+        )
+    plot_df_lice <- rbind(
+        wakeman_pred_lice, knight_1_pred_lice, knight_2_pred_lice
+    ) %>%
+        dplyr::mutate(
+            year = as.integer(as.character(year))
         )
     readr::write_csv(
-        plot_df,
-        here::here("./outputs/final-lice-per-year-table.csv")
+        plot_df_lice,
+        here::here("./outputs/final-all-lice-per-year-table.csv")
     )
-    timeseries <- ggplot(data = plot_df) +
-        geom_line(aes(x = year, y = mean_lice, colour = region),
+
+    ## option with just leps ===================================================
+    wakeman_pred_lep <- wakeman_pred_df %>%
+        dplyr::filter(route == "yes") %>%
+        dplyr::select(pred_leps, pred_se_leps, year) %>%
+        dplyr::group_by(year) %>%
+        dplyr::summarize(
+            mean_lice = mean(pred_leps, na.rm = TRUE),
+            se_lice = mean(pred_se_leps, na.rm = TRUE)
+        ) %>%
+        dplyr::mutate(
+            route = "Wakeman"
+        )
+    knight_1_pred_lep <- knight_1_pred_df %>%
+        dplyr::filter(route == "yes") %>%
+        dplyr::select(pred_leps, pred_se_leps, year) %>%
+        dplyr::group_by(year) %>%
+        dplyr::summarize(
+            mean_lice = mean(pred_leps, na.rm = TRUE),
+            se_lice = mean(pred_se_leps, na.rm = TRUE)
+        ) %>%
+        dplyr::mutate(
+            route = "Knight Inlet"
+        )
+    knight_2_pred_lep <- knight_2_pred_df %>%
+        dplyr::filter(route == "yes") %>%
+        dplyr::select(pred_leps, pred_se_leps, year) %>%
+        dplyr::group_by(year) %>%
+        dplyr::summarize(
+            mean_lice = mean(pred_leps, na.rm = TRUE),
+            se_lice = mean(pred_se_leps, na.rm = TRUE)
+        ) %>%
+        dplyr::mutate(
+            route = "Tribune"
+        )
+    plot_df_leps <- rbind(
+        wakeman_pred_lep, knight_1_pred_lep, knight_2_pred_lep
+    ) %>%
+        dplyr::mutate(
+            year = as.integer(as.character(year))
+        )
+    readr::write_csv(
+        plot_df_leps,
+        here::here("./outputs/final-leps-per-year-table.csv")
+    )
+
+    timeseries_lice <- ggplot(data = plot_df_lice) +
+        geom_line(aes(x = year, y = mean_lice, colour = route, group = route),
             linewidth = 1, linetype = "dashed", alpha = 0.3,
-            position = position_dodge(width = 0.5)
+            position = position_dodge(width = 0.5),
         ) +
         geom_errorbar(
             aes(
                 x = year,
                 ymin = mean_lice - se_lice,
-                ymax = mean_lice + se_lice, colour = region
+                ymax = mean_lice + se_lice, colour = route
             ), ,
             width = 0,
             position = position_dodge(width = 0.5)
         ) +
-        geom_point(aes(x = year, y = mean_lice, fill = region),
+        geom_point(aes(x = year, y = mean_lice, fill = route),
             shape = 21, size = 3, stroke = 1.2,
             position = position_dodge(width = 0.5)
         ) +
@@ -34,16 +112,56 @@ final_timeseries <- function(fish_data, title = "Sea Lice on Wild Fish") {
             title = title
         ) +
         scale_fill_manual(
-            "Region",
+            "Route",
             values = c("#785ef0", "#ffb000", "#dc267f")
         ) +
         scale_colour_manual(
-            "Region",
+            "Route",
             values = c("#785ef0", "#ffb000", "#dc267f")
         )
     ggplot2::ggsave(
-        here::here("./figs/final/timeseries.png"),
-        timeseries,
+        here::here("./figs/final/timeseries-all-lice.png"),
+        timeseries_lice,
+        width = 8, height = 6,
+        dpi = 600
+    )
+    timeseries_leps <- ggplot(data = plot_df_leps) +
+        geom_line(aes(x = year, y = mean_lice, colour = route, group = route),
+            linewidth = 1, linetype = "dashed", alpha = 0.3,
+            position = position_dodge(width = 0.5),
+        ) +
+        geom_errorbar(
+            aes(
+                x = year,
+                ymin = mean_lice - se_lice,
+                ymax = mean_lice + se_lice, colour = route
+            ), ,
+            width = 0,
+            position = position_dodge(width = 0.5)
+        ) +
+        geom_point(aes(x = year, y = mean_lice, fill = route),
+            shape = 21, size = 3, stroke = 1.2,
+            position = position_dodge(width = 0.5)
+        ) +
+        theme_base() +
+        labs(
+            x = "Year", y = rlang::expr(paste(
+                "Mean ", italic("L. salmonis "),
+                " per year"
+            )),
+            title = title
+        ) +
+        scale_fill_manual(
+            "Route",
+            values = c("#785ef0", "#ffb000", "#dc267f")
+        ) +
+        scale_colour_manual(
+            "Route",
+            values = c("#785ef0", "#ffb000", "#dc267f")
+        )
+    ggplot2::ggsave(
+        here::here("./figs/final/timeseries-leps.png"),
+        timeseries_leps,
         width = 8, height = 6,
         dpi = 600
     )
@@ -296,7 +414,7 @@ k2_headwater_distances <- function(knight_2_pred_df, head_dists, inventory) {
                     ),
                     ymax = (mean_lep_adults + se_lep_adults),
                 ), position = position_dodge(width = 2),
-                size = 1.5, colour = "#22c1b8", width = 0
+                size = 1.5, colour = "#ffb000", width = 0
             ) +
             geom_point(
                 data = temp_lice,
@@ -305,7 +423,7 @@ k2_headwater_distances <- function(knight_2_pred_df, head_dists, inventory) {
                     group = year
                 ),
                 shape = 21, position = position_dodge(width = 2), size = 3,
-                fill = "#22c1b8", stroke = 1.2
+                stroke = 1.2
             ) +
             theme_base() +
             labs(
@@ -327,6 +445,10 @@ k2_headwater_distances <- function(knight_2_pred_df, head_dists, inventory) {
                 "Farm Locations",
                 values = c(1),
                 labels = c("")
+            ) +
+            scale_fill_manual("Wild salmon sampling sites",
+                values = c("#ffb000"),
+                labels = ""
             ) +
             theme(
                 legend.position = c(0.18, 0.8),
@@ -420,6 +542,7 @@ k2_headwater_distances <- function(knight_2_pred_df, head_dists, inventory) {
         )
     }
 }
+"#785ef0", "#ffb000"
 wake_headwater_distances <- function(wakeman_pred_df, head_dists, inventory) {
     wakeman_headwater <- wakeman_pred_df %>%
         # dplyr::mutate(site_code = as.factor(site_code)) %>%
@@ -481,23 +604,27 @@ wake_headwater_distances <- function(wakeman_pred_df, head_dists, inventory) {
                     ),
                     ymax = (mean_lep_adults + se_lep_adults),
                 ), position = position_dodge(width = 2),
-                size = 1.5, colour = "#22c1b8", width = 0
+                size = 1.5, colour = "#dc267f", width = 0
             ) +
             geom_point(
                 data = temp_lice,
                 aes(
                     x = (wakeman_head / 1000), y = mean_lep_adults,
-                    group = year
+                    group = year, fill = type
                 ),
                 shape = 21, position = position_dodge(width = 2), size = 3,
-                fill = "#22c1b8", stroke = 1.2
+                 stroke = 1.2
             ) +
             theme_base() +
+            scale_fill_manual("Wild salmon sampling sites",
+                values = c("#dc267f"),
+                labels = ""
+            ) +
             labs(
                 x = "Distance from headwaters (km)",
                 y = rlang::expr(paste(
                     "Mean ", "adult ", italic("L. salmonis "),
-                    " per fish at each sampling location"
+                    " per fish"
                 ))
             ) +
             ggtitle(
@@ -516,8 +643,8 @@ wake_headwater_distances <- function(wakeman_pred_df, head_dists, inventory) {
                 labels = c("")
             ) +
             theme(
-                legend.position = c(0.18, 0.8),
-                legend.background = element_rect(colour = "grey80")
+                legend.position = c(0.25, 0.8),
+                legend.title = element_text(size = 12)
             ) +
             guides(
                 linewidth = guide_legend(
@@ -532,7 +659,7 @@ wake_headwater_distances <- function(wakeman_pred_df, head_dists, inventory) {
             paste0(here::here("./figs/final/wake-adults-"), yr, ".png"),
             wake_adults,
             dpi = 300,
-            height = 8, width = 8,
+            height = 6, width = 6.5,
         )
 
         wake_copes <- ggplot() +
@@ -551,7 +678,7 @@ wake_headwater_distances <- function(wakeman_pred_df, head_dists, inventory) {
                     ),
                     ymax = (mean_lep_copes + se_lep_copes)
                 ), position = position_dodge(width = 2), alpha = 0.8,
-                size = 1.5, width = 0, colour = "#afe1af"
+                size = 1.5, width = 0, colour = "#dc267f"
             ) +
             geom_point(
                 data = temp_lice,
@@ -567,15 +694,15 @@ wake_headwater_distances <- function(wakeman_pred_df, head_dists, inventory) {
             #     values = c("#afe1af")
             # ) +
             scale_fill_manual("Wild salmon sampling sites",
-                values = c("#afe1af"),
+                values = c("#dc267f"),
                 labels = ""
             ) +
             labs(
                 x = "Distance from headwaters (km)",
-                y = rlang::expr(atop(
-                    paste(bold("Mean juvenile "), bolditalic("L. salmonis ")),
-                    paste(bold(" per fish at each sampling location"))
-                ))
+                y = rlang::expr(
+                    paste(bold("Mean juvenile "), bolditalic("L. salmonis "),
+                    bold(" per fish"))
+                )
             ) +
             ggtitle(
                 rlang::expr(paste("Wakeman, ", !!yr))
