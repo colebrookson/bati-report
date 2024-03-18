@@ -1,15 +1,32 @@
 final_timeseries <- function(fish_data, title = "Sea Lice on Wild Fish") {
-    timeseries <- ggplot(data = fish_data %>%
+    plot_df <- fish_data %>%
         dplyr::select(year, month, date, all_lice, region) %>%
         dplyr::group_by(year, region) %>%
         dplyr::summarize(
-            mean_lice = mean(all_lice, na.rm = TRUE)
-        )) +
+            mean_lice = mean(all_lice, na.rm = TRUE),
+            se_lice = std_err(all_lice)
+        )
+    readr::write_csv(
+        plot_df,
+        here::here("./outputs/final-lice-per-year-table.csv")
+    )
+    timeseries <- ggplot(data = plot_df) +
         geom_line(aes(x = year, y = mean_lice, colour = region),
-            linewidth = 1, linetype = "dashed", alpha = 0.3
+            linewidth = 1, linetype = "dashed", alpha = 0.3,
+            position = position_dodge(width = 0.5)
+        ) +
+        geom_errorbar(
+            aes(
+                x = year,
+                ymin = mean_lice - se_lice,
+                ymax = mean_lice + se_lice, colour = region
+            ), ,
+            width = 0,
+            position = position_dodge(width = 0.5)
         ) +
         geom_point(aes(x = year, y = mean_lice, fill = region),
-            shape = 21, size = 3, stroke = 1.2
+            shape = 21, size = 3, stroke = 1.2,
+            position = position_dodge(width = 0.5)
         ) +
         theme_base() +
         labs(
@@ -521,18 +538,10 @@ wake_headwater_distances <- function(wakeman_pred_df, head_dists, inventory) {
         wake_copes <- ggplot() +
             geom_linerange(data = temp_line_df, aes(
                 x = (wakeman_head / 1000), linewidth = type,
-                ymin = 0, ymax =
-                    (max(temp_lice$mean_lep_adults +
-                        temp_lice$se_lep_adults) * 1.08)
+                ymin = 0, ymax = 0.62
+                # (max(temp_lice$mean_lep_adults +
+                #     temp_lice$se_lep_adults) * 1.08)
             ), colour = "red", linetype = "dashed", alpha = 0.4) +
-            geom_point(
-                data = temp_lice,
-                aes(
-                    x = (wakeman_head / 1000), y = mean_lep_copes,
-                ),
-                shape = 21, position = position_dodge(width = 2), size = 3,
-                fill = "#9b044f", stroke = 1.2, colour = "black"
-            ) +
             geom_errorbar(
                 data = temp_lice,
                 aes(
@@ -540,18 +549,32 @@ wake_headwater_distances <- function(wakeman_pred_df, head_dists, inventory) {
                     ymin = ifelse((mean_lep_copes - se_lep_copes) > 0,
                         (mean_lep_copes - se_lep_copes), 0
                     ),
-                    ymax = (mean_lep_copes + se_lep_copes),
+                    ymax = (mean_lep_copes + se_lep_copes)
                 ), position = position_dodge(width = 2), alpha = 0.8,
-                size = 1.5, colour = "#9b044f", width = 0
+                size = 1.5, width = 0, colour = "#afe1af"
+            ) +
+            geom_point(
+                data = temp_lice,
+                aes(
+                    x = (wakeman_head / 1000), y = mean_lep_copes,
+                    fill = type
+                ),
+                shape = 21, position = position_dodge(width = 2), size = 3,
+                stroke = 1.2, colour = "black"
             ) +
             theme_base() +
-            scale_color_viridis("Year", discrete = TRUE, option = "D") +
-            scale_fill_viridis("Year", discrete = TRUE, option = "D") +
+            # scale_color_viridis("Wild salmon sampling sites",
+            #     values = c("#afe1af")
+            # ) +
+            scale_fill_manual("Wild salmon sampling sites",
+                values = c("#afe1af"),
+                labels = ""
+            ) +
             labs(
                 x = "Distance from headwaters (km)",
-                y = rlang::expr(paste(
-                    "Mean ", "juvenile ", italic("L. salmonis "),
-                    " per fish at each sampling location"
+                y = rlang::expr(atop(
+                    paste(bold("Mean juvenile "), bolditalic("L. salmonis ")),
+                    paste(bold(" per fish at each sampling location"))
                 ))
             ) +
             ggtitle(
@@ -559,9 +582,9 @@ wake_headwater_distances <- function(wakeman_pred_df, head_dists, inventory) {
             ) +
             ylim(
                 c(
-                    -0.000001,
-                    max(temp_lice$mean_lep_adults +
-                        temp_lice$se_lep_adults) * 1.1
+                    -0.000001, 0.62
+                    # max(temp_lice$mean_lep_adults +
+                    #     temp_lice$se_lep_adults) * 1.1
                 )
             ) +
             scale_linewidth_manual(
@@ -570,11 +593,19 @@ wake_headwater_distances <- function(wakeman_pred_df, head_dists, inventory) {
                 labels = c("")
             ) +
             theme(
-                legend.position = c(0.18, 0.8),
-                legend.background = element_rect(colour = "grey80")
+                legend.position = c(0.25, 0.8),
+                legend.title = element_text(size = 12)
+                # legend.background = element_rect(colour = "grey80")
             ) +
             guides(
                 linewidth = guide_legend(
+                    override.aes = list(
+                        size = 3,
+                        alpha = 1
+                    ), ,
+                    title.position = "right"
+                ),
+                fill = guide_legend(
                     override.aes = list(
                         size = 3,
                         alpha = 1
@@ -586,7 +617,7 @@ wake_headwater_distances <- function(wakeman_pred_df, head_dists, inventory) {
             paste0(here::here("./figs/final/wake-copes-"), yr, ".png"),
             wake_copes,
             dpi = 300,
-            height = 8, width = 8,
+            height = 6, width = 6.5,
         )
     }
 }

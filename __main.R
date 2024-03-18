@@ -13,6 +13,7 @@ library(dplyr)
 library(ggplot2)
 library(sf)
 library(glmmTMB)
+library(viridis)
 # remotes::install_version("Matrix",
 #     version = "1.6-2",
 #     repos = "http://cran.us.r-project.org"
@@ -109,7 +110,7 @@ yearly_inventory <- yearly_inventory %>%
 # seaway cleaning
 colnames(seaway_data)[1] <- "sampling_sites"
 
-# run models directly in main ==================================================
+# set up models directly in main ===============================================
 head_dists_lice <- dplyr::left_join(
     x = head_dists %>% dplyr::mutate(site_code = as.factor(site_code)),
     y = fish_data,
@@ -206,6 +207,14 @@ wakeman_pred_df[, c("pred_lep_copes", "pred_se_copes")] <- data.frame(
         type = "response", se.fit = TRUE
     )
 )
+
+timeseries_pred_df_knight1 <- data.frame(
+    year = unique(knight1_df$year),
+    route = "yes",
+    season = NA,
+    site_code = NA
+)
+
 
 # final plots ==================================================================
 
