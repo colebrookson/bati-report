@@ -185,6 +185,11 @@ knight_1_pred_df[, c("pred_lep_adults", "pred_se_adults")] <- data.frame(
         type = "response", se.fit = TRUE
     )
 )
+knight_1_pred_df[, c("pred_leps", "pred_se_leps")] <- data.frame(
+    stats::predict(knight1_leps,
+        type = "response", se.fit = TRUE
+    )
+)
 knight_1_pred_df[, c("pred_lep_copes", "pred_se_copes")] <- data.frame(
     stats::predict(knight1_lep_copes,
         type = "response", se.fit = TRUE
@@ -197,6 +202,11 @@ knight_1_pred_df[, c("pred_lice", "pred_se_lice")] <- data.frame(
 )
 knight_2_pred_df[, c("pred_lep_adults", "pred_se_adults")] <- data.frame(
     stats::predict(knight2_lep_adults,
+        type = "response", se.fit = TRUE
+    )
+)
+knight_2_pred_df[, c("pred_leps", "pred_se_leps")] <- data.frame(
+    stats::predict(knight2_leps,
         type = "response", se.fit = TRUE
     )
 )
@@ -225,40 +235,20 @@ wakeman_pred_df[, c("pred_lice", "pred_se_lice")] <- data.frame(
         type = "response", se.fit = TRUE
     )
 )
-
-# timeseries_pred_df_knight1 <- data.frame(
-#     year = unique(knight1_df$year),
-#     route = "yes",
-#     season = as.factor(NA),
-#     site_code = as.factor(NA)
-# )
-# timeseries_pred_df_knight1[, c("pred_lice", "pred_se_lice")] <- data.frame(
-#     stats::predict(knight1_lice,
-#         newdata = timeseries_pred_df_knight1,
-#         type = "response", se.fit = TRUE
-#     )
-# )
+wakeman_pred_df[, c("pred_leps", "pred_se_leps")] <- data.frame(
+    stats::predict(wakeman_leps,
+        type = "response", se.fit = TRUE
+    )
+)
 
 # final plots ==================================================================
 
 ## time series with all the lice through time ==================================
 
-timerseries <- final_timeseries(fish_data, title = "Sea Lice on Wild Fish")
+final_timeseries(fish_data, title = "Sea Lice on Wild Salmon")
 
-# put some initial plots =======================================================
-plot_study_area(
-    geo_data, farm_locs, sampling_locs,
-    to_save = TRUE
-)
+## save the map plots ==========================================================
+plot_study_area(geo_data, farm_locs, sampling_locs, to_save = TRUE)
 
-time_series_lice(
-    fish_data, sampling_locs, inventory
-)
-
-maps_with_data(
-    inventory, fish_data, sampling_locs, farm_locs, geo_data
-)
-
-headwater_distances(
-    head_dists, fish_data
-)
+## wakeman plots of copes and headwater distances ==============================
+wake_headwater_distances(wakeman_pred_df, head_dists, inventory)
