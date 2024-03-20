@@ -804,12 +804,18 @@ maps_thru_time <- function() {
     farms_utm$long <- sf::st_coordinates(farms_utm)[, 1]
     farms_utm$lat <- sf::st_coordinates(farms_utm)[, 2]
     additional_farms_2019 <- data.frame(
-        year = rep(2019, 5),
-        farm_name = rep(as.character("No data"), 5),
-        inventory = rep(as.numeric(NA), 5),
-        type = rep("inventory", 5),
-        lat = c(50.613613, 50.607854, 50.601053, 50.878912, 50.864622),
-        long = c(-126.330394, -126.363236, -126.348457, -126.901578, -126.921629)
+        year = rep(2019, 6),
+        farm_name = rep(as.character("No data"), 6),
+        inventory = rep(as.numeric(NA), 6),
+        type = rep("inventory", 6),
+        lat = c(
+            50.613613, 50.607854, 50.601053, 50.878912, 50.864622,
+            50.854366
+        ),
+        long = c(
+            -126.330394, -126.363236, -126.348457, -126.901578, -126.921629,
+            -126.757594
+        )
     )
     additional_farms_2023 <- data.frame(
         year = rep(2023, 3),
@@ -847,15 +853,15 @@ maps_thru_time <- function() {
         geom_sf(data = bc_cropped, fill = "grey95") +
         geom_sf(data = temp_farms_2019, aes(
             size = vals,
-            colour = vals
-        ), shape = 15) +
+            fill = vals
+        ), shape = 22, colour = "black", stroke = 0.5) +
         geom_sf(
             data = temp_additional_2019, aes(shape = farm_name),
-            colour = "red", stroke = 1, size = 4
+            colour = "red", stroke = 0.5, size = 6
         ) +
         coord_sf(datum = "+proj=utm +zone=9 +datum=NAD83 +unit=m") +
         theme_base() +
-        scale_colour_viridis_c("",
+        scale_fill_viridis_c("",
             guide = "legend", option = "C",
             labels = function(x) format(x, big.mark = ",", scientific = FALSE),
             breaks = c(200000, 475000, 750000),
@@ -914,11 +920,11 @@ maps_thru_time <- function() {
         geom_sf(data = bc_cropped, fill = "grey95") +
         geom_sf(data = temp_fish, aes(
             size = mean_leps,
-            colour = mean_leps
-        ), shape = 16) +
+            fill = mean_leps
+        ), shape = 21, colour = "black", stroke = 0.5) +
         coord_sf(datum = "+proj=utm +zone=9 +datum=NAD83 +unit=m") +
         theme_base() +
-        scale_colour_viridis_c("",
+        scale_fill_viridis_c("",
             guide = "legend", option = "C",
             breaks = c(0, 0.45, 0.69),
             labels = c("0.0", "0.45", "0.7")
@@ -952,15 +958,15 @@ maps_thru_time <- function() {
         geom_sf(data = bc_cropped, fill = "grey95") +
         geom_sf(data = temp_farms_2023, aes(
             size = vals,
-            colour = vals
-        ), shape = 15) +
+            fill = vals
+        ), shape = 22, colour = "black", stroke = 1) +
         geom_sf(
             data = temp_additional_2023, aes(shape = farm_name),
-            colour = "red", stroke = 1, size = 4
+            colour = "red", stroke = 0.5, size = 6
         ) +
         coord_sf(datum = "+proj=utm +zone=9 +datum=NAD83 +unit=m") +
         theme_base() +
-        scale_colour_viridis_c("",
+        scale_fill_viridis_c("",
             guide = "legend", option = "C",
             labels = function(x) format(x, big.mark = ",", scientific = FALSE),
             breaks = c(200000, 475000, 750000),
@@ -996,16 +1002,16 @@ maps_thru_time <- function() {
         geom_sf(data = bc_cropped, fill = "grey95") +
         geom_sf(
             data = temp_outlier,
-            shape = 9, colour = "#c1b800", stroke = 1.2, fill = "white",
-            size = 6
+            shape = 9, colour = "#d2c63f", stroke = 2, fill = "white",
+            size = 8
         ) +
         geom_sf(data = temp_fish, aes(
             size = mean_leps,
-            colour = mean_leps
-        ), shape = 16) +
+            fill = mean_leps
+        ), shape = 21, colour = "black", stroke = 0.5) +
         coord_sf(datum = "+proj=utm +zone=9 +datum=NAD83 +unit=m") +
         theme_base() +
-        scale_colour_viridis_c("",
+        scale_fill_viridis_c("",
             guide = "legend", option = "C",
             breaks = c(0, 0.45, 0.7),
             labels = c("0.0", "0.45", "0.7"),
@@ -1024,6 +1030,7 @@ maps_thru_time <- function() {
             legend.background = element_rect(fill = "grey95"),
             legend.text = element_text(size = 16)
         )
+
     ggplot2::ggsave(
         here::here("./figs/final/wild-2023.png"),
         pwild_2023,
