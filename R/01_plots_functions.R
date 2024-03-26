@@ -310,31 +310,153 @@ time_series_lice <- function(fish_data, sampling_locs, inventory) {
         spp_leps_yr
     )
     # farm inventory / lice ====================================================
-    mean_farm <- inventory %>%
-        dplyr::group_by(date) %>%
+    monthly_inventory <- inventory %>%
+        dplyr::group_by(year, month, farm_name) %>%
         dplyr::summarize(
             inventory = mean(inventory, na.rm = TRUE),
             lice = mean(lep_tot, na.rm = TRUE)
+        )
+
+    sum_farm <- monthly_inventory %>%
+        dplyr::group_by(year, month) %>%
+        dplyr::summarize(
+            inventory = sum(inventory, na.rm = TRUE),
+            lice = sum(lice, na.rm = TRUE)
+        ) %>%
+        dplyr::rowwise() %>%
+        dplyr::mutate(
+            lice_per_fish = lice / inventory
         ) %>%
         tidyr::pivot_longer(
             values_to = "vals",
-            cols = c("inventory", "lice"),
+            cols = c("inventory", "lice", "lice_per_fish"),
             names_to = "type"
+        ) %>%
+        dplyr::rowwise() %>%
+        dplyr::mutate(
+            date = lubridate::ym(paste(year, month))
+        )
+    options(scipen = 999)
+
+    sampling_seasons <- fish_data %>%
+        dplyr::group_by(year) %>%
+        dplyr::summarize(
+            start = min(date),
+            end = max(date)
+        )
+    sampling_years <- c(2019, 2020, 2021, 2022, 2023)
+    sampling_data <- do.call(rbind, lapply(sampling_years, function(year) {
+        data.frame(
+            year = year,
+            datetime = seq(
+                from = as.Date(sampling_seasons$start[sampling_seasons$year == year]),
+                to = as.Date(sampling_seasons$end[sampling_seasons$year == year]),
+                by = "days"
+            )
+        )
+    }))
+    sampling_data$label <- "Sampling Periods"
+
+    inventory_p <- ggplot(data = sum_farm) +
+        geom_col(
+            data = sampling_data,
+            aes(x = datetime, y = 8, colour = label),
+            alpha = 0.1, width = 0.001
+        ) +
+        scale_colour_manual(
+            "",
+            values = c("#ffed9f"),
+            labels = c("Sampling Periods")
+        ) +
+        guides(
+            colour = guide_legend(override.aes = list(
+                shape = 22,
+                fill = "#ffed9f", colour = "#ffed9f", alpha = 1
+            ))
+        ) +
+        ggnewscale::new_scale_colour() +
+        geom_point(
+            aes(
+                x = date, y = (vals / 1000000),
+                fill = type, shape = type
+            ),
+            colour = "black"
+        ) +
+        geom_line(aes(x = date, y = (vals / 1000000), colour = type),
+            linetype = "dashed"
+        ) +
+        scale_shape_manual(
+            "Measure",
+            values = c(21, 22),
+            labels = c("# of Fish", "Lice on Fish")
+        ) +
+        scale_fill_manual(
+            "Measure",
+            values = c("#880ED4", "#02C0CE"),
+            labels = c("# of Fish", "Lice on Fish")
+        ) +
+        scale_colour_manual(
+            "Measure",
+            values = c("#880ED4", "#02C0CE"),
+            labels = c("# of Fish", "Lice on Fish")
+        ) +
+        theme_base() +
+        labs(
+            x = "Date", y = "Total number of fish & lice (millions)",
+            title = "Farm Inventory & Lice on Farmed Fish"
         )
 
-    inventory_p <- ggplot(data = mean_farm) +
-        geom_point(aes(x = date, y = vals, fill = type, shape = type),
-            colour = "black"
+    # do it again but louse-per-fish
+    inventory_per_fish <- ggplot(data = sum_farm[which(
+        sum_farm$type == "lice_per_fish"
+    ), ]) +
+        geom_col(
+            data = sampling_data,
+            aes(x = datetime, y = 1.75, colour = label),
+            alpha = 0.1, width = 0.001
+        ) +
+        scale_colour_manual(
+            "",
+            values = c("#ffed9f"),
+            labels = c("Sampling Periods")
+        ) +
+        guides(
+            colour = guide_legend(override.aes = list(
+                shape = 22,
+                fill = "#ffed9f", colour = "#ffed9f", alpha = 1
+            ))
+        ) +
+        ggnewscale::new_scale_colour() +
+        geom_point(
+            aes(
+                x = date, y = vals,
+                fill = type
+            ),
+            colour = "black", shape = 21
         ) +
         geom_line(aes(x = date, y = vals, colour = type),
             linetype = "dashed"
         ) +
-        scale_shape_manual(values = c(21, 22)) +
+        scale_fill_manual(
+            "Measure",
+            values = c("#be0014"),
+            labels = c("Lice per fish")
+        ) +
+        scale_colour_manual(
+            "Measure",
+            values = c("#be0014"),
+            labels = c("Lice per fish")
+        ) +
         theme_base() +
-        labs(x = "Date", y = "Number of Lice / Fish")
+        labs(
+            x = "Date", y = "Number of lice per farmed Fish",
+            title = "Sea Lice on Farmed Fish"
+        )
     ggsave(
-        here::here("./figs/inventory-through-time.png"),
-        inventory_p
+        here::here("./figs/final/inventory-through-time-per-fish.png"),
+        inventory_per_fish,
+        width = 8, height = 6,
+        dpi = 600
     )
 
     # wild lice farm lice ======================================================

@@ -14,6 +14,8 @@ library(ggplot2)
 library(sf)
 library(glmmTMB)
 library(viridis)
+library(ggnewscale)
+
 # remotes::install_version("Matrix",
 #     version = "1.6-2",
 #     repos = "http://cran.us.r-project.org"
