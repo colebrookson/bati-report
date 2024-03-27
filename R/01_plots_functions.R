@@ -357,7 +357,9 @@ time_series_lice <- function(fish_data, sampling_locs, inventory) {
     }))
     sampling_data$label <- "Sampling Periods"
 
-    inventory_p <- ggplot(data = sum_farm) +
+    inventory_p <- ggplot(data = sum_farm[which(
+        sum_farm$type != "lice_per_fish"
+    ), ]) +
         geom_col(
             data = sampling_data,
             aes(x = datetime, y = 8, colour = label),
@@ -380,7 +382,7 @@ time_series_lice <- function(fish_data, sampling_locs, inventory) {
                 x = date, y = (vals / 1000000),
                 fill = type, shape = type
             ),
-            colour = "black"
+            colour = "black", size = 3
         ) +
         geom_line(aes(x = date, y = (vals / 1000000), colour = type),
             linetype = "dashed"
@@ -402,10 +404,20 @@ time_series_lice <- function(fish_data, sampling_locs, inventory) {
         ) +
         theme_base() +
         labs(
-            x = "Date", y = "Total number of fish & lice (millions)",
-            title = "Farm Inventory & Lice on Farmed Fish"
+            x = "Date", y = "Total # fish & lice (millions)",
+            title = "Farm Inventory & Lice"
+        ) +
+        theme(
+            legend.text = element_text(
+                size = rel(1)
+            )
         )
-
+    ggsave(
+        here::here("./figs/final/inventory-through-time.png"),
+        inventory_p,
+        width = 8, height = 6,
+        dpi = 600
+    )
     # do it again but louse-per-fish
     inventory_per_fish <- ggplot(data = sum_farm[which(
         sum_farm$type == "lice_per_fish"
@@ -432,7 +444,7 @@ time_series_lice <- function(fish_data, sampling_locs, inventory) {
                 x = date, y = vals,
                 fill = type
             ),
-            colour = "black", shape = 21
+            colour = "black", shape = 21, size = 3
         ) +
         geom_line(aes(x = date, y = vals, colour = type),
             linetype = "dashed"
@@ -451,6 +463,11 @@ time_series_lice <- function(fish_data, sampling_locs, inventory) {
         labs(
             x = "Date", y = "Number of lice per farmed Fish",
             title = "Sea Lice on Farmed Fish"
+        ) +
+        theme(
+            legend.text = element_text(
+                size = rel(1)
+            )
         )
     ggsave(
         here::here("./figs/final/inventory-through-time-per-fish.png"),

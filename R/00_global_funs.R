@@ -196,7 +196,7 @@ theme_foundation <- function(base_size = 12, base_family = "") {
 #' @export
 #' @family themes
 #' @example inst/examples/ex-theme_base.R
-theme_base <- function(base_size = 16, base_family = "") {
+theme_base <- function(base_size = 18, base_family = "") {
     theme_foundation() +
         theme(
             line = element_line(
@@ -224,12 +224,15 @@ theme_base <- function(base_size = 16, base_family = "") {
             legend.key = element_rect(colour = NA),
             title = element_text(size = rel(1)),
             plot.title = element_text(
-                size = rel(1.5), face = "bold",
+                size = rel(1.4), face = "bold",
                 hjust = 0.5
             ),
             axis.title = element_text(
-                size = rel(1.05),
+                size = rel(1.15),
                 face = "bold"
+            ),
+            axis.text = element_text(
+                size = rel(1)
             ),
             strip.text = element_text(),
             axis.ticks.length = unit(0.5, "lines"),
