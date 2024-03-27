@@ -183,12 +183,14 @@ k1_headwater_distances <- function(knight_1_pred_df, head_dists, inventory) {
         # dplyr::mutate(site_code = as.factor(site_code)) %>%
         dplyr::group_by(site_code, year) %>%
         dplyr::summarize(
-            mean_lep_copes = mean(pred_lep_copes, na.rm = TRUE),
-            se_lep_copes = mean(pred_se_copes, na.rm = TRUE),
-            mean_lep_adults = mean(pred_lep_adults, na.rm = TRUE),
-            se_lep_adults = mean(pred_se_adults, na.rm = TRUE)
-        ) %>%
-        dplyr::rowwise()
+           sum_lep_copes = sum(lep_cope),
+            mean_lep_copes = mean(lep_cope),
+            fish = n()
+        )
+    knight1_headwater$lower = epitools::pois.exact(
+        knight1_headwater$sum_lep_copes, pt = knight1_headwater$fish)$lower
+    knight1_headwater$upper = epitools::pois.exact(
+        knight1_headwater$sum_lep_copes, pt = knight1_headwater$fish)$upper
 
     knight1_head_dists_lice <- dplyr::left_join(
         x = head_dists %>% dplyr::mutate(site_code = as.factor(site_code)),
@@ -222,81 +224,10 @@ k1_headwater_distances <- function(knight_1_pred_df, head_dists, inventory) {
                 !is.na(knight1_head_dists_lice$knight_head_1)
         ), ]
 
-        # make and save plots yearly
-        k1_adults <- ggplot() +
-            geom_linerange(data = temp_line_df, aes(
-                x = (knight_head_1 / 1000), linewidth = type,
-                ymin = 0, ymax =
-                    (max(temp_lice$mean_lep_adults +
-                        temp_lice$se_lep_adults) * 1.1)
-            ), colour = "red", linetype = "dashed", alpha = 0.4) +
-            geom_errorbar(
-                data = temp_lice,
-                aes(
-                    x = (knight_head_1 / 1000),
-                    ymin = ifelse((mean_lep_adults - se_lep_adults) > 0,
-                        (mean_lep_adults - se_lep_adults), 0
-                    ),
-                    ymax = (mean_lep_adults + se_lep_adults),
-                ), position = position_dodge(width = 2),
-                size = 1.5, colour = "#dc267f", width = 0
-            ) +
-            geom_point(
-                data = temp_lice,
-                aes(
-                    x = (knight_head_1 / 1000), y = mean_lep_adults,
-                    group = year
-                ),
-                shape = 21, position = position_dodge(width = 2), size = 3,
-                fill = "#dc267f", stroke = 1.2
-            ) +
-            theme_base() +
-            labs(
-                x = "Distance from headwaters (km)",
-                y = rlang::expr(paste(
-                    "Mean ", "adult ", italic("L. salmonis "),
-                    " per fish at each sampling location"
-                ))
-            ) +
-            ggtitle(
-                rlang::expr(paste("Knight Inlet (route 1), ", !!yr))
-            ) +
-            ylim(
-                c(
-                    -0.000001,
-                    max(temp_lice$mean_lep_adults +
-                        temp_lice$se_lep_adults) * 1.1
-                )
-            ) +
-            scale_linewidth_manual(
-                "Farm Locations",
-                values = c(1),
-                labels = c("")
-            ) +
-            theme(
-                legend.position = c(0.18, 0.8),
-                legend.background = element_rect(colour = "grey80")
-            ) +
-            guides(
-                linewidth = guide_legend(
-                    override.aes = list(
-                        size = 3,
-                        alpha = 1
-                    ), ,
-                    title.position = "right"
-                )
-            )
-        ggplot2::ggsave(
-            paste0(here::here("./figs/final/kn1-adults-"), yr, ".png"),
-            k1_adults,
-            dpi = 300,
-            height = 8, width = 8,
-        )
-
         k1_copes <- ggplot() +
             geom_linerange(data = temp_line_df, aes(
                 x = (knight_head_1 / 1000), linewidth = type,
-                ymin = 0, ymax = 0.62
+                ymin = 0, ymax = 2.35
                 # (max(temp_lice$mean_lep_adults +
                 #     temp_lice$se_lep_adults) * 1.08)
             ), colour = "red", linetype = "dashed", alpha = 0.4) +
@@ -304,10 +235,8 @@ k1_headwater_distances <- function(knight_1_pred_df, head_dists, inventory) {
                 data = temp_lice,
                 aes(
                     x = (knight_head_1 / 1000),
-                    ymin = ifelse((mean_lep_copes - se_lep_copes) > 0,
-                        (mean_lep_copes - se_lep_copes), 0
-                    ),
-                    ymax = (mean_lep_copes + se_lep_copes)
+                    ymin = lower,
+                    ymax = upper,
                 ), position = position_dodge(width = 2), alpha = 0.8,
                 size = 1.5, width = 0, colour = "#dc267f"
             ) +
@@ -342,7 +271,7 @@ k1_headwater_distances <- function(knight_1_pred_df, head_dists, inventory) {
             ) +
             ylim(
                 c(
-                    -0.000001, 0.62
+                    -0.000001, 2.38
                     # max(temp_lice$mean_lep_adults +
                     #     temp_lice$se_lep_adults) * 1.1
                 )
@@ -389,12 +318,14 @@ k2_headwater_distances <- function(knight_2_pred_df, head_dists, inventory) {
         # dplyr::mutate(site_code = as.factor(site_code)) %>%
         dplyr::group_by(site_code, year) %>%
         dplyr::summarize(
-            mean_lep_copes = mean(pred_lep_copes, na.rm = TRUE),
-            se_lep_copes = mean(pred_se_copes, na.rm = TRUE),
-            mean_lep_adults = mean(pred_lep_adults, na.rm = TRUE),
-            se_lep_adults = mean(pred_se_adults, na.rm = TRUE)
-        ) %>%
-        dplyr::rowwise()
+            sum_lep_copes = sum(lep_cope),
+            mean_lep_copes = mean(lep_cope),
+            fish = n()
+        )
+    knight2_headwater$lower = epitools::pois.exact(
+        knight2_headwater$sum_lep_copes, pt = knight2_headwater$fish)$lower
+    knight2_headwater$upper = epitools::pois.exact(
+        knight2_headwater$sum_lep_copes, pt = knight2_headwater$fish)$upper
 
     knight2_head_dists_lice <- dplyr::left_join(
         x = head_dists %>% dplyr::mutate(site_code = as.factor(site_code)),
@@ -428,83 +359,10 @@ k2_headwater_distances <- function(knight_2_pred_df, head_dists, inventory) {
                 !is.na(knight2_head_dists_lice$knight_head_2)
         ), ]
 
-        # make and save plots yearly
-        k2_adults <- ggplot() +
-            geom_linerange(data = temp_line_df, aes(
-                x = (knight_head_2 / 1000), linewidth = type,
-                ymin = 0, ymax = 0.37
-                #     (max(temp_lice$mean_lep_adults +
-                # temp_lice$se_lep_adults) * 1.1)
-            ), colour = "red", linetype = "dashed", alpha = 0.4) +
-            geom_errorbar(
-                data = temp_lice,
-                aes(
-                    x = (knight_head_2 / 1000),
-                    ymin = ifelse((mean_lep_adults - se_lep_adults) > 0,
-                        (mean_lep_adults - se_lep_adults), 0
-                    ),
-                    ymax = (mean_lep_adults + se_lep_adults),
-                ), position = position_dodge(width = 2),
-                size = 1.5, colour = "#ffb000", width = 0
-            ) +
-            geom_point(
-                data = temp_lice,
-                aes(
-                    x = (knight_head_2 / 1000), y = mean_lep_adults,
-                    group = year
-                ),
-                shape = 21, position = position_dodge(width = 2), size = 3,
-                stroke = 1.2
-            ) +
-            theme_base() +
-            labs(
-                x = "Distance from headwaters (km)",
-                y = rlang::expr(paste(
-                    "Mean ", "adult ", italic("L. salmonis "),
-                    " per fish at each sampling location"
-                ))
-            ) +
-            ggtitle(
-                rlang::expr(paste("Knight Inlet (route 2), ", !!yr))
-            ) +
-            ylim(
-                c(-0.000001, 0.37)
-                # max(temp_lice$mean_lep_adults +
-                # temp_lice$se_lep_adults) * 1.1)
-            ) +
-            scale_linewidth_manual(
-                "Farm Locations",
-                values = c(1),
-                labels = c("")
-            ) +
-            scale_fill_manual("Wild salmon sampling sites",
-                values = c("#ffb000"),
-                labels = ""
-            ) +
-            theme(
-                legend.position = c(0.18, 0.8),
-                legend.background = element_rect(colour = "grey80")
-            ) +
-            guides(
-                linewidth = guide_legend(
-                    override.aes = list(
-                        size = 3,
-                        alpha = 1
-                    ), ,
-                    title.position = "right"
-                )
-            )
-        ggplot2::ggsave(
-            paste0(here::here("./figs/final/kn2-adults-"), yr, ".png"),
-            k2_adults,
-            dpi = 300,
-            height = 8, width = 8,
-        )
-
         k2_copes <- ggplot() +
             geom_linerange(data = temp_line_df, aes(
                 x = (knight_head_2 / 1000), linewidth = type,
-                ymin = 0, ymax = 0.62
+                ymin = 0, ymax = 2.35
                 # (max(temp_lice$mean_lep_adults +
                 #     temp_lice$se_lep_adults) * 1.08)
             ), colour = "red", linetype = "dashed", alpha = 0.4) +
@@ -512,10 +370,8 @@ k2_headwater_distances <- function(knight_2_pred_df, head_dists, inventory) {
                 data = temp_lice,
                 aes(
                     x = (knight_head_2 / 1000),
-                    ymin = ifelse((mean_lep_copes - se_lep_copes) > 0,
-                        (mean_lep_copes - se_lep_copes), 0
-                    ),
-                    ymax = (mean_lep_copes + se_lep_copes)
+                    ymin = lower,
+                    ymax = upper,
                 ), position = position_dodge(width = 2), alpha = 0.8,
                 size = 1.5, width = 0, colour = "#ffb000"
             ) +
@@ -550,7 +406,7 @@ k2_headwater_distances <- function(knight_2_pred_df, head_dists, inventory) {
             ) +
             ylim(
                 c(
-                    -0.000001, 0.62
+                    -0.000001, 2.38
                     # max(temp_lice$mean_lep_adults +
                     #     temp_lice$se_lep_adults) * 1.1
                 )
@@ -642,86 +498,10 @@ wake_headwater_distances <- function(wakeman_pred_df, head_dists, inventory) {
                 !is.na(wakeman_head_dists_lice$wakeman_head)
         ), ]
 
-        # make and save plots yearly
-        wake_adults <- ggplot() +
-            geom_linerange(data = temp_line_df, aes(
-                x = (wakeman_head / 1000), linewidth = type,
-                ymin = 0, ymax =
-                    (max(temp_lice$sum_lep_copes +
-                        temp_lice$upper) * 1.1)
-            ), colour = "red", linetype = "dashed", alpha = 0.4) +
-            geom_errorbar(
-                data = temp_lice,
-                aes(
-                    x = (wakeman_head / 1000),
-                    ymin = lower,
-                    ymax = upper,
-                ), position = position_dodge(width = 2),
-                size = 1.5, colour = "#dc267f", width = 0
-            ) +
-            geom_point(
-                data = temp_lice,
-                aes(
-                    x = (wakeman_head / 1000), y = mean_lep,
-                    group = year, fill = type
-                ),
-                shape = 21, position = position_dodge(width = 2), size = 3,
-                stroke = 1.2
-            ) +
-            theme_base() +
-            scale_fill_manual("Wild salmon sampling sites",
-                values = c("#dc267f"),
-                labels = ""
-            ) +
-            labs(
-                x = "Distance from headwaters (km)",
-                y = rlang::expr(paste(
-                    "Mean ", "adult ", italic("L. salmonis "),
-                    " per fish"
-                ))
-            ) +
-            ggtitle(
-                rlang::expr(paste("Wakeman, ", !!yr))
-            ) +
-            ylim(
-                c(
-                    -0.000001,
-                    max(temp_lice$mean_lep_adults +
-                        temp_lice$se_lep_adults) * 1.1
-                )
-            ) +
-            xlim(
-                c(0, 50)
-            ) +
-            scale_linewidth_manual(
-                "Farm Locations",
-                values = c(1),
-                labels = c("")
-            ) +
-            theme(
-                legend.position = c(0.25, 0.8),
-                legend.title = element_text(size = 12)
-            ) +
-            guides(
-                linewidth = guide_legend(
-                    override.aes = list(
-                        size = 3,
-                        alpha = 1
-                    ), ,
-                    title.position = "right"
-                )
-            )
-        ggplot2::ggsave(
-            paste0(here::here("./figs/final/wake-adults-"), yr, ".png"),
-            wake_adults,
-            dpi = 300,
-            height = 6, width = 6.5,
-        )
-
         wake_copes <- ggplot() +
             geom_linerange(data = temp_line_df, aes(
                 x = (wakeman_head / 1000), linewidth = type,
-                ymin = 0, ymax = 0.62
+                ymin = 0, ymax = 2.35
                 # (max(temp_lice$mean_lep_adults +
                 #     temp_lice$se_lep_adults) * 1.08)
             ), colour = "red", linetype = "dashed", alpha = 0.4) +
@@ -729,10 +509,8 @@ wake_headwater_distances <- function(wakeman_pred_df, head_dists, inventory) {
                 data = temp_lice,
                 aes(
                     x = (wakeman_head / 1000),
-                    ymin = ifelse((mean_lep_copes - se_lep_copes) > 0,
-                        (mean_lep_copes - se_lep_copes), 0
-                    ),
-                    ymax = (mean_lep_copes + se_lep_copes)
+                    ymin = lower,
+                    ymax = upper,
                 ), position = position_dodge(width = 2), alpha = 0.8,
                 size = 1.5, width = 0, colour = "#dc267f"
             ) +
@@ -767,7 +545,7 @@ wake_headwater_distances <- function(wakeman_pred_df, head_dists, inventory) {
             ) +
             ylim(
                 c(
-                    -0.000001, 0.62
+                    -0.000001, 2.38
                     # max(temp_lice$mean_lep_adults +
                     #     temp_lice$se_lep_adults) * 1.1
                 )

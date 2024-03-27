@@ -254,3 +254,5 @@ plot_study_area(geo_data, farm_locs, sampling_locs, to_save = TRUE)
 
 ## wakeman plots of copes and headwater distances ==============================
 wake_headwater_distances(wakeman_pred_df, head_dists, inventory)
+
+## for myself ==================================================================
