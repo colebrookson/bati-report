@@ -256,3 +256,9 @@ plot_study_area(geo_data, farm_locs, sampling_locs, to_save = TRUE)
 wake_headwater_distances(wakeman_pred_df, head_dists, inventory)
 
 ## for myself ==================================================================
+sampling_counts <- fish_data %>%
+    dplyr::group_by(year, month, day, site_name) %>%
+    dplyr::summarize(
+        n = n()
+    )
+hist(sampling_counts$n)
